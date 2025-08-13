@@ -1,0 +1,5 @@
+"train_type","switch","emmean","SE","df","lower.CL","upper.CL","id"
+"stable","stay",0.01,0.01,98,-0.00210345444692408,0.0306330227338112,"stable_stay"
+"variable","stay",0.04,0.01,98,0.020666690420093,0.0534031676008283,"variable_stay"
+"stable","switch",0.02,0.01,98,0.0052697520185637,0.0447140603283349,"stable_switch"
+"variable","switch",0.05,0.01,98,0.0277294491685573,0.0671737574783285,"variable_switch"

@@ -1,0 +1,6 @@
+"0",""
+"0","train_ph_win <- list(""stable_sw_v_st"" = c(-1, 0, 1, 0), # switch > stay for stable group"
+"0","                     ""variable_sw_v_st"" = c(0, -1, 0, 1))"
+"0","train_ph_btwn <- list(""grp_stay"" = c(-1, 1, 0, 0), # var > stab"
+"0","                      ""grp_switch"" = c(0, 0, -1, 1))"
+"0",""

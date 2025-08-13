@@ -1,0 +1,4 @@
+"0","k4_on_prct_out_removed <- sum(is.na(onset_dat$k4_onset_flt)) / length(onset_dat$k4_onset) "
+"0","write.csv(k4_on_prct_out_removed, paste(res_path, 'k4on_prct_rem.csv', sep=""""), row.names=FALSE)"
+"0",""
+"0","write.csv(onset_dat, paste(data_path, 'exp_lt_onset_cln.csv', sep=''), row.names=FALSE)"

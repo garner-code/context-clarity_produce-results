@@ -1,0 +1,7 @@
+"exp","effect","numDF","denDF","Fstat","ges","p","id"
+"lt","train_type",1,98,8.35,0.076,0.005,"lt_train_type"
+"lt","switch",1,98,5.51,0.002,0.021,"lt_switch"
+"lt","train_type:switch",1,98,24.36,0.008,0,"lt_train_type:switch"
+"ts","train_type",1,98,10.66,0.093,0.002,"ts_train_type"
+"ts","switch",1,98,1.26,0.001,0.265,"ts_switch"
+"ts","train_type:switch",1,98,16.54,0.01,0,"ts_train_type:switch"

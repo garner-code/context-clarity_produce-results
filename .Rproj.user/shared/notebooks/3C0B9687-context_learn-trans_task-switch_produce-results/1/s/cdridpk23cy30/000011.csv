@@ -1,0 +1,14 @@
+"0",""
+"0","#| label: effect of group and switch on general errors"
+"0","#| tbl-cap: ""effect of group and switch on general errors"""
+"0","kable(er_aov_dat, digits=2)"
+"2","G3;Registered S3 methods overwritten by 'htmltools':
+  method               from         
+  print.html           tools:rstudio
+  print.shiny.tag      tools:rstudio
+  print.shiny.tag.list tools:rstudio
+g"
+"2","G3;Registered S3 method overwritten by 'rmarkdown':
+  method         from
+  print.paged_df     
+g"

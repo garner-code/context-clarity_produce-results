@@ -1,0 +1,6 @@
+"0",""
+"0","tj_emm_int_lt <- summary(tj_emm_int_lt)"
+"0","tj_emm_int_lt$emmean <- round(tj_emm_int_lt$emmean,2)"
+"0","tj_emm_int_lt$SE <- round(tj_emm_int_lt$SE,2)"
+"0","tj_emm_int_lt$id <- paste(tj_emm_int_lt$train_type, tj_emm_int_lt$switch, sep=""_"")"
+"0","write.csv(tj_emm_int_lt, paste(res_path, 'task_jumps_emms_lt.csv', sep=""""), row.names=FALSE)"

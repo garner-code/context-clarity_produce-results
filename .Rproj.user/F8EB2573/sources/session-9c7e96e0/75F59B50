@@ -1,0 +1,31 @@
+{
+    "id": "75F59B50",
+    "path": "~/Documents/projects/routines_produce-results/routines_produce-results.qmd",
+    "project_path": null,
+    "type": "quarto_markdown",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1755041070657.0,
+    "source_on_save": false,
+    "relative_order": 4,
+    "properties": {
+        "rmdVisualMode": "true",
+        "rmdVisualWrapConfigured": "true",
+        "source_window_id": "",
+        "Source": "Source",
+        "docOutlineVisible": "1",
+        "cursorPosition": "666,44",
+        "scrollLine": "0",
+        "rmdVisualModeLocation": "16519:10200.533203125",
+        "rmdVisualCollapsedChunks": ""
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1754439546,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1754439546,
+    "read_only": false,
+    "read_only_alternatives": []
+}
