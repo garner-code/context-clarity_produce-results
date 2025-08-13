@@ -562,6 +562,8 @@ plt_tran_bp_4paper_andtlks(lt_acc_by_grp_fname,
                 fig_lab = 'B')
 ```
 
+![Fig: Effect of Group and Condition on Accuracy](figs/lt_acc_by_grp_4tlks.svg){fig-align="cent"}
+
 ```{r, message=FALSE}
 
 # first set the factors to be factors
@@ -641,7 +643,7 @@ kable(lt_acc_contrasts, digits=2)
 
 Okies. That is the accuracy measure done. Now I can measure setting errors, defined as selections during transfer, that were relevant during training, that are not relevant now.
 
-```{r}
+```{r, message=FALSE}
 
 set_err <- read.csv(paste(data_path, 'exp_lt_evt.csv', sep='')) %>%
               filter(ses >= 2) 
@@ -649,19 +651,23 @@ set_err <- read.csv(paste(data_path, 'exp_lt_evt.csv', sep='')) %>%
 # this function ius ugly, but does the job
 get_other_doors <- function(set_err, subj){
   # get the doors that would count as 'setting errors'
-  sess2_doors <- set_err %>% filter(ses == 2, sub == subj) %>% 
+  sess2_doors <- set_err %>% filter(ses == 2, 
+                                    sub == subj) %>% 
                 select(sub, door, context, door_cc) %>%
                 filter(as.logical(door_cc)) %>%
                 distinct() %>% select(sub, door, context)
   
-  sess3_doors <- set_err %>% filter(ses == 3, sub == subj) %>%
+  sess3_doors <- set_err %>% filter(ses == 3, 
+                                    sub == subj) %>%
                   select(sub, door, context, door_cc) %>%
                   filter(as.logical(door_cc)) %>%
                   distinct() %>% select(sub, door, context) 
   
-  other_doors <- sess3_doors %>% group_by(context) %>% mutate(other=tmp2$door[!tmp2$door %in% door])
+  other_doors <- sess3_doors %>% group_by(context) %>% mutate(other=sess2_doors$door[!sess2_doors$door %in% door])
   
   # now bind the new doors to the subject's data
+  dat <- set_err %>% filter(sub == subj,
+                            ses == 3)
   dat$door_oc <- NA
   dat$door_oc[dat$context == 3 & dat$door %in% other_doors$other[other_doors$context == 3]] = 1
   dat$door_oc[dat$context == 4 & dat$door %in% other_doors$other[other_doors$context == 4]] = 1
@@ -670,5 +676,58 @@ get_other_doors <- function(set_err, subj){
 }
 
 subs <- unique(set_err$sub)
-set_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err))
+lt_set_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err)) %>%
+                group_by(sub, train_type, transfer) %>%
+                summarise(set_err = mean(door_oc)) %>%
+                ungroup()
 ```
+
+Now I have the setting errors, I can plot them -
+
+```{r}
+
+# now I can plot the data
+lt_se_by_grp_fname = paste(fig_path,'lt_se_by_grp', sep='')
+plt_tran_bp_4paper_andtlks(lt_se_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                lt_set_err_dat,
+                'set_err ~ transfer*train_type', 
+                col_scheme,
+                'Set Err',
+                c(0, 0.5),
+                fig_lab = 'C')
+```
+
+![Fig: Effect of Group and Condition on Setting Errors](figs/lt_se_by_grp_4tlks.svg){fig-align="cent"}
+
+Now we have a plot, we can analyse the data
+
+```{r, message=FALSE}
+# first set the factors to be factors
+lt_set_err_dat$sub <- as.factor(lt_set_err_dat$sub)
+lt_set_err_dat$train_type <- as.factor(lt_set_err_dat$train_type)
+levels(lt_set_err_dat$train_type) <- c('stable','variable')
+lt_set_err_dat$transfer <- as.factor(lt_set_err_dat$transfer)
+levels(lt_set_err_dat$transfer) <- c('id','mix')
+
+lt_set_err_aov <- 
+  aov_ez("sub", "set_err", lt_set_err_dat, 
+         within = "transfer",
+         between = "train_type")
+
+lt_set_err_aov_dat <- convert_aov_to_df(lt_set_err_aov, "lt_se")
+# do some manual rounding of columns
+lt_set_err_aov_dat$Fstat <- round(lt_set_err_aov_dat$Fstat, 2)
+lt_set_err_aov_dat$ges <- round(lt_set_err_aov_dat$ges, 3)
+lt_set_err_aov_dat$p <- round(lt_set_err_aov_dat$p, 3)
+
+# now save
+write.csv(lt_set_err_aov_dat, paste(res_path, 'lt_se_aov.csv', sep=""), row.names=FALSE)
+```
+
+Okies, at this point, I need to print the aov table, get the emms for the interaction and the ME.
+
+Then I need to replicate this for general errors (which will involve recalculating general errors). And then I present those results.
+
+Then I join up the figs for the paper.

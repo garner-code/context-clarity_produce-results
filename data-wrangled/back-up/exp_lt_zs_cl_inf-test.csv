@@ -1,3 +1,0 @@
-"","statistic.t","parameter.df","p.value","conf.int1","conf.int2","estimate.mean of x","null.value.mean","stderr","alternative","method","data.name"
-"1","-6.69033622176513","97","7.17258220514121e-10","-Inf","-12.8232252397246","-17.0572848069922","0","2.54954074677161","less","One Sample t-test","zdat_cl$mu_z"
-"2","-5.90588121647348","97","2.59174702114051e-08","-Inf","-12.8232252397246","-17.0572848069922","-2","2.54954074677161","less","One Sample t-test","zdat_cl$mu_z"
