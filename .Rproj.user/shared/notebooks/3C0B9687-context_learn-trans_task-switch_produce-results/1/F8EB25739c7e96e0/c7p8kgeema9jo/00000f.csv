@@ -26,3 +26,8 @@
 "0",""
 "0","write.csv(lt_onset_contrasts, paste(res_path, 'lt_onset_int_ph.csv', sep=""""), row.names=FALSE)"
 "0",""
+"0","# now also save the emms for the interaction"
+"0","lt_onset_int_emm <- summary(lt_onset_int_emm)"
+"0","lt_onset_int_emm[,cols2round] <- apply(lt_onset_int_emm[,cols2round], 2, round, 2)"
+"0","lt_onset_int_emm$id <- paste(lt_onset_int_emm$train_type, lt_onset_int_emm$transfer, sep=""_"")"
+"0","write.csv(lt_onset_int_emm, paste(res_path, 'lt_onset_int_emm.csv', sep=""""), row.names=FALSE)"

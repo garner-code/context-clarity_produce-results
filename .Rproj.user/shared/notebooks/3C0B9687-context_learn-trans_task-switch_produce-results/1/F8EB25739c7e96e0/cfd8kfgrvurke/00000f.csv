@@ -1,0 +1,5 @@
+"0",""
+"0","# get emms for the main effect"
+"0","lt_onset_grp_emm <- summary(emmeans(onset_aov, c(""train_type"")))"
+"0","lt_onset_grp_emm[,cols2round] <- apply(lt_onset_grp_emm[,cols2round], 2, round, 2)"
+"0","write.csv(lt_onset_grp_emm, paste(res_path, 'lt_onset_emm_grp.csv', sep=""""), row.names=FALSE)"

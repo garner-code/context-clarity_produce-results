@@ -360,13 +360,17 @@ onset_dat <- onset_dat %>% na.omit() %>%
 non_learn_prob <- binom.test(sum(non_learn$train_type == "stable"), length(non_learn$train_type), 0.5)
 non_learn_prob <- tibble(n_stable = non_learn_prob$statistic,
                          n_var = non_learn_prob$parameter - non_learn_prob$statistic,
-                         p = non_learn_prob$p.value)
+                         total = n_stable + n_var,
+                         n_total = 100 - total,
+                         p = round(non_learn_prob$p.value, 2),
+                         id = "val")
 write.csv(non_learn_prob, paste(res_path, 'non_learn_grp_mem.csv', sep=""), row.names=FALSE)
 # Now I have the data, I want to replace any outliers with NA and save the resulting data file
 dvs <- c('k4_onset')
 onset_dat <- cbind(onset_dat,
          do.call(cbind, lapply(dvs, remove_outliers, betas=onset_dat)))
-k4_on_prct_out_removed <- sum(is.na(onset_dat$k4_onset_flt)) / length(onset_dat$k4_onset) 
+k4_on_prct_out_removed <- tibble(prct = round(sum(is.na(onset_dat$k4_onset_flt)) / length(onset_dat$k4_onset), 2),
+                                 val = 'prct')
 write.csv(k4_on_prct_out_removed, paste(res_path, 'k4on_prct_rem.csv', sep=""), row.names=FALSE)
 
 write.csv(onset_dat, paste(data_path, 'exp_lt_onset_cln.csv', sep=''), row.names=FALSE)
@@ -437,6 +441,9 @@ write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), ro
 
 # get emms for the main effect
 lt_onset_emm <- summary(emmeans(onset_aov, c("transfer")))
+
+cols2round <- c("emmean", "SE")
+lt_onset_emm[,cols2round] <- apply(lt_onset_emm[,cols2round], 2, round, 2)
 write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), row.names=FALSE)
 
 ```
@@ -472,6 +479,11 @@ lt_onset_contrasts$Fstat <- round(lt_onset_contrasts$t.ratio^2, 2)
 
 write.csv(lt_onset_contrasts, paste(res_path, 'lt_onset_int_ph.csv', sep=""), row.names=FALSE)
 
+# now also save the emms for the interaction
+lt_onset_int_emm <- summary(lt_onset_int_emm)
+lt_onset_int_emm[,cols2round] <- apply(lt_onset_int_emm[,cols2round], 2, round, 2)
+lt_onset_int_emm$id <- paste(lt_onset_int_emm$train_type, lt_onset_int_emm$transfer, sep="_")
+write.csv(lt_onset_int_emm, paste(res_path, 'lt_onset_int_emm.csv', sep=""), row.names=FALSE)
 ```
 
 There is also a main effect of group, so get the estimated marginal means for that -
@@ -480,5 +492,6 @@ There is also a main effect of group, so get the estimated marginal means for th
 
 # get emms for the main effect
 lt_onset_grp_emm <- summary(emmeans(onset_aov, c("train_type")))
+lt_onset_grp_emm[,cols2round] <- apply(lt_onset_grp_emm[,cols2round], 2, round, 2)
 write.csv(lt_onset_grp_emm, paste(res_path, 'lt_onset_emm_grp.csv', sep=""), row.names=FALSE)
 ```
