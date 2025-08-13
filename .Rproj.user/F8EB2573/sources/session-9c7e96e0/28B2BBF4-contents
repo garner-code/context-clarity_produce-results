@@ -55,7 +55,7 @@ tran_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex){
                xlab='',
                notch=FALSE))
   axis(1, at=c(1.5, 4), labels=c('Sta', 'Var'))
-  axis(2, at=seq(0, max(ylim), by=50), labels=paste(seq(0, max(ylim), by=50)))
+  axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
   mtext('Group', side=1, line=2, las=1, cex=xlab_cex)
   legend(0.25, 230, c('I','M'), fill=col_scheme, bty='n')
 }

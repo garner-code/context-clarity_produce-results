@@ -1,4 +1,4 @@
 "exp","effect","numDF","denDF","Fstat","ges","p"
-"onset","train_type",1,69,4.21,0.03,0.044
-"onset","transfer",1,69,17.29,0.111,0
-"onset","train_type:transfer",1,69,5.11,0.036,0.027
+"onset","train_type",1,84,0,0,0.955
+"onset","transfer",1,84,11.24,0.054,0.001
+"onset","train_type:transfer",1,84,4.79,0.024,0.031

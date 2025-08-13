@@ -1,9 +1,0 @@
-"0","lt_onset_grp_emm
-"
-"1"," train_type emmean   SE df lower.CL upper.CL
- stable       53.4 2.45 69     48.5     58.2
- variable     46.4 2.34 69     41.7     51.1
-
-Results are averaged over the levels of: transfer 
-Confidence level used: 0.95 
-"

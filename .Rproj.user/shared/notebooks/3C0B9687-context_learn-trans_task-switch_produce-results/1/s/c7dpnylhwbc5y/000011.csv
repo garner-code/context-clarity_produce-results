@@ -15,10 +15,7 @@
 "0",""
 "0","errors <- do.call(rbind, lapply(exp_strs, get_error_data,"
 "0","                                data_path = data_path))"
-"2","[38;5;232m`summarise()` has grouped output by 'sub', 'train_type'. You can override using the `.groups` argument.[39m
-"
-"2","[38;5;232m`summarise()` has grouped output by 'sub', 'train_type'. You can override using the `.groups` argument.[39m
-"
+"0",""
 "0","gen_jumps_plot(errors,"
 "0","               'errors ~ switch*train_type',"
 "0","               exp_strs,"

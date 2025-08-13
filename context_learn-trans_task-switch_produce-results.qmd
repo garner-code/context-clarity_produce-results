@@ -1,6 +1,7 @@
 ---
 title: "context_learn-trans_task-switch_produce-results"
-format: html
+format: 
+  html:
     code-fold: TRUE
     default-image-extension: svg
 editor: visual
@@ -31,7 +32,7 @@ top_folder/
 
 First, load required packages and set the relative paths for data and other required things...
 
-```{r, fold=TRUE, results='hide'}
+```{r, fold=TRUE, message=FALSE, results='hide'}
 options(tidyverse.quiet = TRUE)
 library(tidyverse)
 library(grid)
@@ -76,7 +77,7 @@ trn_bp_hgt = j_hgt
 
 This is where we look at the task-jumps measure between the two groups. Here I create a group x trial type dataframe and draw and save the boxplots. Note I will collect the data for both experiments here, but I will present them separately.
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 
 # first, get the task jump data - note that I am not saving it as a csv,
 # as it already exists with all the relevant info in the _avg csv
@@ -117,7 +118,7 @@ Now lets see the fig in all its glory -
 
 Now lets apply the ANOVA model to the data -
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 
 # first set the factors to be factors
 jumps$sub <- as.factor(jumps$sub)
@@ -161,13 +162,22 @@ tj_aov_dat$p <- round(tj_aov_dat$p, 3)
 tj_aov_dat$id <- paste(tj_aov_dat$exp, tj_aov_dat$effect, sep="_") 
 write.csv(tj_aov_dat, paste(res_path, 'task_jumps_aov.csv', sep=""), row.names=FALSE)
 
+kable(tj_aov_dat)
+
+```
+
+```{r}
+
+#| label: effect of group and switch on task jumps
+#| tbl-cap: "effect of group and switch on task jumps"
+kable(tj_aov_dat, digits=2)
 ```
 
 We can see from the above results that we have a significant group x switch interaction for both experiments. We need to follow this up with post-hoc contrasts.
 
 First, lets define the contrasts that we will apply to task jumps and general errors across both experiments -
 
-```{r}
+```{r, message=FALSE}
 
 train_ph_win <- list("stable_sw_v_st" = c(-1, 0, 1, 0), # switch > stay for stable group
                      "variable_sw_v_st" = c(0, -1, 0, 1))
@@ -190,24 +200,40 @@ tj_contrasts_lt$p.value <- round(tj_contrasts_lt$p.value, 2)
 tj_contrasts_lt$Fstat <- round(tj_contrasts_lt$t.ratio^2, 2)
 
 write.csv(tj_contrasts_lt, paste(res_path, 'task_jumps_post_hoc_lt.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: post hoc contrasts on task jumps
+#| tbl-cap: "post hoc contrasts switch on task jumps"
+kable(tj_contrasts_lt, digits=2)
 ```
 
 Now save the table of estimated marginal means for reporting
 
-```{r}
+```{r, message=FALSE}
 
 tj_emm_int_lt <- summary(tj_emm_int_lt)
 tj_emm_int_lt$emmean <- round(tj_emm_int_lt$emmean,2)
 tj_emm_int_lt$SE <- round(tj_emm_int_lt$SE,2)
 tj_emm_int_lt$id <- paste(tj_emm_int_lt$train_type, tj_emm_int_lt$switch, sep="_")
 write.csv(tj_emm_int_lt, paste(res_path, 'task_jumps_emms_lt.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: task jump emms
+#| tbl-cap: "task jump emms"
+kable(tj_emm_int_lt, digits=2)
 ```
 
 ### How did training affect general errors?
 
 Now we apply the same analysis as above, but to the general errors -
 
-```{r}
+```{r, message=FALSE}
 
 # get general errors data
 get_error_data <- function(exp_str, data_path){
@@ -243,7 +269,7 @@ gen_jumps_plot(errors,
 
 Next, I will put the task jumps and error figures together, for the paper.
 
-```{r}
+```{r, message=FALSE}
 
 fnms = c(paste(fig_path, 'task-jumps', sep=''), 
          paste(fig_path, 'general-errors', sep=''))
@@ -262,7 +288,7 @@ plot(multi)
 dev.off()
 ```
 
-```{r, results='hide'}
+```{r, results='hide', message=FALSE}
 
 # first set the factors to be factors
 errors$sub <- as.factor(errors$sub)
@@ -289,7 +315,6 @@ er_aov_dat[,cols2round] <- apply(er_aov_dat[,cols2round], 2, round, 2)
 er_aov_dat$id <- paste(er_aov_dat$exp, er_aov_dat$effect, sep="_")
 
 write.csv(er_aov_dat, paste(res_path, 'gen-errs_aov.csv', sep=""), row.names=FALSE)
-
 ```
 
 ```{r}
@@ -299,9 +324,9 @@ write.csv(er_aov_dat, paste(res_path, 'gen-errs_aov.csv', sep=""), row.names=FAL
 kable(er_aov_dat, digits=2)
 ```
 
-We have a statistically significant main effect of switch. So let's get the emmeans for that.
+We have a statistically significant main effect of switch. So let's get the EM means for that. Lets also print out the EM means for the interaction as that information is also useful.
 
-```{r}
+```{r, message=FALSE}
 
 # get emms for the main effect
 ge_emm_sw_lt <- summary(emmeans(er_aovs[["lt"]], c("switch")))
@@ -321,14 +346,22 @@ ge_emm_sw_int_lt$id <- paste(ge_emm_sw_int_lt$train_type,
 
 # save
 write.csv(ge_emm_sw_int_lt, paste(res_path, 'ge_emms_int_lt.csv', sep=""), row.names=FALSE)
+```
 
+```{r}
+
+#| label: EMMs for group and switch on general errors
+#| tbl-cap: "EMMs for group and switch on general errors"
+kable(ge_emm_sw_int_lt, digits=2)
 ```
 
 ### The impact of training on learning transfer
 
+#### Task knowledge onset
+
 First steps are to wrangle the routine and group x transfer task data, and looking at learning onset for each group and task as a boxplot.
 
-```{r}
+```{r, message=FALSE, results='hide', warning=FALSE}
 
 ###### nopw sort this code
 # wrangle data
@@ -356,6 +389,11 @@ non_learn <- onset_dat %>% filter(is.infinite(k4_onset)) %>%
 onset_dat <- onset_dat %>% na.omit() %>%
                 filter(is.finite(k4_onset))
 
+# now remove subs who have less than 2 observations each
+onset_dat <- inner_join(onset_dat, onset_dat %>% group_by(sub) %>%
+                          summarise(N=length(sub))) %>%
+               filter(N==2)
+
 # need to show that the probability of being excluded did not relate to group membership
 non_learn_prob <- binom.test(sum(non_learn$train_type == "stable"), length(non_learn$train_type), 0.5)
 non_learn_prob <- tibble(n_stable = non_learn_prob$statistic,
@@ -365,50 +403,33 @@ non_learn_prob <- tibble(n_stable = non_learn_prob$statistic,
                          p = round(non_learn_prob$p.value, 2),
                          id = "val")
 write.csv(non_learn_prob, paste(res_path, 'non_learn_grp_mem.csv', sep=""), row.names=FALSE)
-# Now I have the data, I want to replace any outliers with NA and save the resulting data file
-dvs <- c('k4_onset')
-onset_dat <- cbind(onset_dat,
-         do.call(cbind, lapply(dvs, remove_outliers, betas=onset_dat)))
-k4_on_prct_out_removed <- tibble(prct = round(sum(is.na(onset_dat$k4_onset_flt)) / length(onset_dat$k4_onset), 2),
-                                 val = 'prct')
-write.csv(k4_on_prct_out_removed, paste(res_path, 'k4on_prct_rem.csv', sep=""), row.names=FALSE)
 
 write.csv(onset_dat, paste(data_path, 'exp_lt_onset_cln.csv', sep=''), row.names=FALSE)
 ```
 
 Now plot the learning onset scores -
 
-```{r}
-
-# first, I rename the k4 onset variable so I can plot it
-onset_dat <- onset_dat %>% rename(k4_on = k4_onset_flt)
-
-# also remove subs with NA
-subs_w_na <- unique(onset_dat$sub[is.na(onset_dat$k4_on)])
-onset_dat <- onset_dat %>% filter(!sub %in% subs_w_na)
-# now remove subs who don't have 2 observations each 
-onset_dat <- inner_join(onset_dat, 
-                        onset_dat %>% group_by(sub) %>% summarise(N=length(sub))) %>%
-  filter(N == 2)
+```{r, message=FALSE}
 
 col_scheme = c('#ccba72ff', '#4c5454ff')
-
 
 k4_by_grp_fname = paste(fig_path,'k4_by_grp', sep='')
 plt_tran_bp_4paper_andtlks(k4_by_grp_fname,
                 trn_bp_wdth,
                 trn_bp_hgt,
                 onset_dat,
-                'k4_on ~ transfer*train_type', 
+                'k4_onset ~ transfer*train_type', 
                 col_scheme,
                 'Onset',
                 c(0, 200),
                 fig_lab = 'A')
 ```
 
+![Fig: Effect of Group and Condition on Knowledge Onset](figs/k4_by_grp_4tlks.svg){fig-align="cent"}
+
 Now I have the data in order I am ready to perform the analysis on the onset data as defined for task jumps above, but this time on learning transfer performance.
 
-```{r}
+```{r, message=FALSE, warning=FALSE}
 
 # first set the factors to be factors
 onset_dat$sub <- as.factor(onset_dat$sub)
@@ -417,7 +438,7 @@ levels(onset_dat$train_type) <- c('stable','variable')
 onset_dat$transfer <- as.factor(onset_dat$transfer)
 
 onset_aov <- 
-  aov_ez("sub", "k4_on", onset_dat, 
+  aov_ez("sub", "k4_onset", onset_dat, 
          within = "transfer",
          between = "train_type")
 
@@ -430,24 +451,37 @@ lt_onset_aov_dat$p <- round(lt_onset_aov_dat$p, 3)
 # now save
 write.csv(lt_onset_aov_dat, paste(res_path, 'lt_onset_aov.csv', sep=""), row.names=FALSE)
 
+```
 
+```{r}
+
+#| label: Effect of group and transfer condition on knowledge onset
+#| tbl-cap: "Effect of group and transfer condition on knowledge onset"
+kable(lt_onset_aov_dat, digits=2)
 ```
 
 There are significant main effects of condition, so lets get the estimated marginal means -
 
-write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), row.names=FALSE)
-
-```{r}
+```{r, message=FALSE}
 
 # get emms for the main effect
 lt_onset_emm <- summary(emmeans(onset_aov, c("transfer")))
-write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), row.names=FALSE)
 
+cols2round <- c("emmean", "SE")
+lt_onset_emm[,cols2round] <- apply(lt_onset_emm[,cols2round], 2, round, 2)
+write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), row.names=FALSE)
+```
+
+```{r}
+
+#| label: EMMs for transfer condition on knowledge onset
+#| tbl-cap: "EMMs for transfer condition on knowledge onset"
+kable(lt_onset_emm, digits=2)
 ```
 
 There is a significant group x condition interaction, so lets follow up -
 
-```{r}
+```{r, message=FALSE}
 
 lt_onset_int_emm <- emmeans(onset_aov, c("train_type", "transfer"))
 
@@ -476,13 +510,165 @@ lt_onset_contrasts$Fstat <- round(lt_onset_contrasts$t.ratio^2, 2)
 
 write.csv(lt_onset_contrasts, paste(res_path, 'lt_onset_int_ph.csv', sep=""), row.names=FALSE)
 
+# now also save the emms for the interaction
+lt_onset_int_emm <- summary(lt_onset_int_emm)
+lt_onset_int_emm[,cols2round] <- apply(lt_onset_int_emm[,cols2round], 2, round, 2)
+lt_onset_int_emm$id <- paste(lt_onset_int_emm$train_type, lt_onset_int_emm$transfer, sep="_")
+write.csv(lt_onset_int_emm, paste(res_path, 'lt_onset_int_emm.csv', sep=""), row.names=FALSE)
 ```
-
-There is also a main effect of group, so get the estimated marginal means for that -
 
 ```{r}
 
+# | label: EMMs for group by transfer condition on knowledge onset
+# | tbl-cap: "EMMs for group by transfer condition on knowledge onset"
+kable(lt_onset_int_emm, digits=2)
+```
+
+```{r}
+
+# | label: EMMs for group by transfer condition on knowledge onset
+# | tbl-cap: "EMMs for group by transfer condition on knowledge onset"
+kable(lt_onset_int_emm, digits=2)
+```
+
+#### Accuracy data
+
+Now I wrangle the accuracy data so I can apply the same analysis.
+
+```{r}
+
+lt_acc <- read.csv(paste(data_path, 'exp_lt_avg.csv', sep='')) %>% 
+  filter(ses==3) %>%
+  select(sub, transfer, full_transfer_first, train_type, accuracy) %>% 
+  mutate(train_type=recode(train_type, `1` = 'stable', `2` = 'variable'),
+         transfer=recode(transfer, `1` = 'identity', `2` = 'mixed'))
+```
+
+So now we have the data, we can plot it
+
+```{r}
+
+
+# now I can plot the data
+lt_acc_by_grp_fname = paste(fig_path,'lt_acc_by_grp', sep='')
+plt_tran_bp_4paper_andtlks(lt_acc_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                lt_acc,
+                'accuracy ~ transfer*train_type', 
+                col_scheme,
+                'Accuracy',
+                c(0.6, 1),
+                fig_lab = 'B')
+```
+
+```{r, message=FALSE}
+
+# first set the factors to be factors
+lt_acc$sub <- as.factor(lt_acc$sub)
+lt_acc$train_type <- as.factor(lt_acc$train_type)
+levels(lt_acc$train_type) <- c('stable','variable')
+lt_acc$transfer <- as.factor(lt_acc$transfer)
+
+lt_acc_aov <- 
+  aov_ez("sub", "accuracy", lt_acc, 
+         within = "transfer",
+         between = "train_type")
+
+lt_acc_aov_dat <- convert_aov_to_df(lt_acc_aov, "lt_acc")
+# do some manual rounding of columns
+lt_acc_aov_dat$Fstat <- round(lt_acc_aov_dat$Fstat, 2)
+lt_acc_aov_dat$ges <- round(lt_acc_aov_dat$ges, 3)
+lt_acc_aov_dat$p <- round(lt_acc_aov_dat$p, 3)
+
+# now save
+write.csv(lt_acc_aov_dat, paste(res_path, 'lt_acc_aov.csv', sep=""), row.names=FALSE)
+
+```
+
+There is a significant main effect of condition, so lets get the estimated marginal means -
+
+```{r, message=FALSE}
+
 # get emms for the main effect
-lt_onset_grp_emm <- summary(emmeans(onset_aov, c("train_type")))
-write.csv(lt_onset_grp_emm, paste(res_path, 'lt_onset_emm_grp.csv', sep=""), row.names=FALSE)
+lt_acc_emm <- summary(emmeans(lt_acc_aov, c("transfer")))
+
+cols2round <- c("emmean", "SE")
+lt_acc_emm[,cols2round] <- apply(lt_acc_emm[,cols2round], 2, round, 2)
+write.csv(lt_acc_emm, paste(res_path, 'lt_acc_emm_transfer.csv', sep=""), row.names=FALSE)
+```
+
+```{r}
+
+#| label: EMMs for transfer condition on accuracy
+#| tbl-cap: "EMMs for transfer condition on accuracy"
+kable(lt_acc_emm, digits=2)
+```
+
+Now I follow up the group x transfer interaction
+
+```{r}
+
+lt_acc_int_emm <- emmeans(lt_acc_aov, c("train_type", "transfer"))
+
+################################################################################
+
+lt_acc_win <- contrast(lt_acc_int_emm, lt_ph_win_contrasts, adjust="scheffe")
+lt_acc_btwn <- contrast(lt_acc_int_emm, lt_ph_btwn_contrasts, adjust="scheffe")
+lt_acc_contrasts <- summary(rbind(lt_acc_win, lt_acc_btwn))
+
+lt_acc_contrasts$estimate <- round(lt_acc_contrasts$estimate, 2)
+lt_acc_contrasts$SE <- round(lt_acc_contrasts$SE, 2)
+lt_acc_contrasts$p.value <- round(lt_acc_contrasts$p.value, 2)
+lt_acc_contrasts$Fstat <- round(lt_acc_contrasts$t.ratio^2, 2)
+
+write.csv(lt_acc_contrasts, paste(res_path, 'lt_acc_int_ph.csv', sep=""), row.names=FALSE)
+
+# now also save the emms for the interaction
+lt_acc_int_emm <- summary(lt_acc_int_emm)
+lt_acc_int_emm[,cols2round] <- apply(lt_acc_int_emm[,cols2round], 2, round, 2)
+lt_acc_int_emm$id <- paste(lt_acc_int_emm$train_type, lt_acc_int_emm$transfer, sep="_")
+write.csv(lt_acc_int_emm, paste(res_path, 'lt_acc_int_emm.csv', sep=""), row.names=FALSE)
+```
+
+```{r}
+# | label: EMMs for group by transfer condition on knowledge onset
+# | tbl-cap: "EMMs for group by transfer condition on knowledge onset"
+kable(lt_acc_contrasts, digits=2)
+```
+
+#### Setting errors
+
+Okies. That is the accuracy measure done. Now I can measure setting errors, defined as selections during transfer, that were relevant during training, that are not relevant now.
+
+```{r}
+
+set_err <- read.csv(paste(data_path, 'exp_lt_evt.csv', sep='')) %>%
+              filter(ses >= 2) 
+
+# this function ius ugly, but does the job
+get_other_doors <- function(set_err, subj){
+  # get the doors that would count as 'setting errors'
+  sess2_doors <- set_err %>% filter(ses == 2, sub == subj) %>% 
+                select(sub, door, context, door_cc) %>%
+                filter(as.logical(door_cc)) %>%
+                distinct() %>% select(sub, door, context)
+  
+  sess3_doors <- set_err %>% filter(ses == 3, sub == subj) %>%
+                  select(sub, door, context, door_cc) %>%
+                  filter(as.logical(door_cc)) %>%
+                  distinct() %>% select(sub, door, context) 
+  
+  other_doors <- sess3_doors %>% group_by(context) %>% mutate(other=tmp2$door[!tmp2$door %in% door])
+  
+  # now bind the new doors to the subject's data
+  dat$door_oc <- NA
+  dat$door_oc[dat$context == 3 & dat$door %in% other_doors$other[other_doors$context == 3]] = 1
+  dat$door_oc[dat$context == 4 & dat$door %in% other_doors$other[other_doors$context == 4]] = 1
+  dat$door_oc[is.na(dat$door_oc)] <- 0
+  dat
+}
+
+subs <- unique(set_err$sub)
+set_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err))
 ```

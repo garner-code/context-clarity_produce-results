@@ -16,10 +16,7 @@
 "0",""
 "0","jumps <- do.call(rbind, lapply(exp_strs, get_jump_data,"
 "0","                               data_path = data_path))"
-"2","[38;5;232m`summarise()` has grouped output by 'sub', 'train_type'. You can override using the `.groups` argument.[39m
-"
-"2","[38;5;232m`summarise()` has grouped output by 'sub', 'train_type'. You can override using the `.groups` argument.[39m
-"
+"0",""
 "0","col_scheme = c('#7570b3', '#e7298a')"
 "0",""
 "0","gen_jumps_plot(jumps,"
