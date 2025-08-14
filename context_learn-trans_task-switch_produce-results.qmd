@@ -807,14 +807,16 @@ lt_gen_err_aov <-
          within = "transfer",
          between = "train_type")
 
-lt_gen_err_aov <- convert_aov_to_df(lt_gen_err_aov, "lt_ge")
+lt_gen_err_aov_dat <- convert_aov_to_df(lt_gen_err_aov, "lt_ge")
 # do some manual rounding of columns
-lt_gen_err_aov$Fstat <- round(lt_gen_err_aov$Fstat, 2)
-lt_gen_err_aov$ges <- round(lt_gen_err_aov$ges, 3)
-lt_gen_err_aov$p <- round(lt_gen_err_aov$p, 3)
-
+lt_gen_err_aov_dat$Fstat <- round(lt_gen_err_aov_dat$Fstat, 2)
+lt_gen_err_aov_dat$ges <- round(lt_gen_err_aov_dat$ges, 3)
+lt_gen_err_aov_dat$p <- round(lt_gen_err_aov_dat$p, 3)
+lt_gen_err_aov_dat$id <- paste(lt_gen_err_aov_dat$exp, 
+                               lt_gen_err_aov_dat$effect,
+                               sep="_")
 # now save
-write.csv(lt_gen_err_aov, paste(res_path, 'lt_se_aov.csv', sep=""), row.names=FALSE)
+write.csv(lt_gen_err_aov_dat, paste(res_path, 'lt_ge_aov.csv', sep=""), row.names=FALSE)
 
 
 ```
@@ -824,9 +826,16 @@ write.csv(lt_gen_err_aov, paste(res_path, 'lt_se_aov.csv', sep=""), row.names=FA
 
 # | label: Effect of group by transfer condition on general errors during test
 # | tbl-cap: "Effect of group by transfer condition on general errors during test"
-kable(lt_gen_err_aov, digits=2)
+kable(lt_gen_err_aov_dat, digits=2)
 ```
+And now I print out the EMMs for the effect of transfer task on general errors.
 
+```{r}
+
+lt_ge_emm <- summary(emmeans(lt_gen_err_aov, c('transfer')))
+lt_ge_emm[,cols2round] <- apply(lt_ge_emm[,cols2round], 2, round, 2)
+write.csv(lt_ge_emm, paste(res_path, 'lt_ge_emm.csv', sep=""), row.names=FALSE)
+```
 
 Then I join up the figs for the paper.
 
