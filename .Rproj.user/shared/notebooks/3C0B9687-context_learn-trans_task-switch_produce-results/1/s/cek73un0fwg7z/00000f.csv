@@ -1,7 +1,0 @@
-"0",""
-"0","# get emms for the main effect"
-"0","lt_onset_emm <- summary(emmeans(onset_aov, c(""transfer"")))"
-"0",""
-"0","cols2round <- c(""emmean"", ""SE"")"
-"0","lt_onset_emm[,cols2round] <- apply(lt_onset_emm[,cols2round], 2, round, 2)"
-"0","write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""""), row.names=FALSE)"

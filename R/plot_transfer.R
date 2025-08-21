@@ -7,19 +7,18 @@ plt_tran_bp_4paper_andtlks <- function(plt_sv_nm,
                                        ylim,
                                        fig_lab){
   
-  # for paper
-  ###### make the coefs plots for paper 
+ 
   pdf(paste(plt_sv_nm, '.pdf', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1)
+  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4)
   fig_label(fig_lab)
   dev.off()
   
-  pdf(paste(plt_sv_nm, '.svg', sep=''), 
+  svg(paste(plt_sv_nm, '.svg', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1)
+  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4)
   fig_label(fig_lab)
   dev.off()
   
@@ -57,7 +56,7 @@ tran_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex){
   axis(1, at=c(1.5, 4), labels=c('Sta', 'Var'))
   axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
   mtext('Group', side=1, line=2, las=1, cex=xlab_cex)
-  legend(0.25, 230, c('I','M'), fill=col_scheme, bty='n')
+  legend(3.5, 0.8, c('I','M'), fill=col_scheme, bty='n')
 }
 
 plt_bias_by_grp_4paper_andtlks <- function(plt_sv_nm,

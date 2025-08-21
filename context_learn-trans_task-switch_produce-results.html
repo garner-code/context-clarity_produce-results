@@ -824,6 +824,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="the-impact-of-training-on-learning-transfer" class="level3">
 <h3 class="anchored" data-anchor-id="the-impact-of-training-on-learning-transfer">The impact of training on learning transfer</h3>
+<section id="task-knowledge-onset" class="level4">
+<h4 class="anchored" data-anchor-id="task-knowledge-onset">Task knowledge onset</h4>
 <p>First steps are to wrangle the routine and group x transfer task data, and looking at learning onset for each group and task as a boxplot.</p>
 <div class="cell">
 <details class="code-fold">
@@ -854,64 +856,40 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> onset_dat <span class="sc">%&gt;%</span> <span class="fu">na.omit</span>() <span class="sc">%&gt;%</span></span>
 <span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>                <span class="fu">filter</span>(<span class="fu">is.finite</span>(k4_onset))</span>
 <span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co"># need to show that the probability of being excluded did not relate to group membership</span></span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>non_learn_prob <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(<span class="fu">sum</span>(non_learn<span class="sc">$</span>train_type <span class="sc">==</span> <span class="st">"stable"</span>), <span class="fu">length</span>(non_learn<span class="sc">$</span>train_type), <span class="fl">0.5</span>)</span>
-<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>non_learn_prob <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">n_stable =</span> non_learn_prob<span class="sc">$</span>statistic,</span>
-<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>                         <span class="at">n_var =</span> non_learn_prob<span class="sc">$</span>parameter <span class="sc">-</span> non_learn_prob<span class="sc">$</span>statistic,</span>
-<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>                         <span class="at">total =</span> n_stable <span class="sc">+</span> n_var,</span>
-<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a>                         <span class="at">n_total =</span> <span class="dv">100</span> <span class="sc">-</span> total,</span>
-<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>                         <span class="at">p =</span> <span class="fu">round</span>(non_learn_prob<span class="sc">$</span>p.value, <span class="dv">2</span>),</span>
-<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>                         <span class="at">id =</span> <span class="st">"val"</span>)</span>
-<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(non_learn_prob, <span class="fu">paste</span>(res_path, <span class="st">'non_learn_grp_mem.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
-<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Now I have the data, I want to replace any outliers with NA and save the resulting data file</span></span>
-<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>dvs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'k4_onset'</span>)</span>
-<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> <span class="fu">cbind</span>(onset_dat,</span>
-<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>         <span class="fu">do.call</span>(cbind, <span class="fu">lapply</span>(dvs, remove_outliers, <span class="at">betas=</span>onset_dat)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="context_learn-trans_task-switch_produce-results_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-<details class="code-fold">
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>k4_on_prct_out_removed <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">prct =</span> <span class="fu">round</span>(<span class="fu">sum</span>(<span class="fu">is.na</span>(onset_dat<span class="sc">$</span>k4_onset_flt)) <span class="sc">/</span> <span class="fu">length</span>(onset_dat<span class="sc">$</span>k4_onset), <span class="dv">2</span>),</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">val =</span> <span class="st">'prct'</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(k4_on_prct_out_removed, <span class="fu">paste</span>(res_path, <span class="st">'k4on_prct_rem.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(onset_dat, <span class="fu">paste</span>(data_path, <span class="st">'exp_lt_onset_cln.csv'</span>, <span class="at">sep=</span><span class="st">''</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co"># now remove subs who have less than 2 observations each</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(onset_dat, onset_dat <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(sub) <span class="sc">%&gt;%</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>                          <span class="fu">summarise</span>(<span class="at">N=</span><span class="fu">length</span>(sub))) <span class="sc">%&gt;%</span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>               <span class="fu">filter</span>(N<span class="sc">==</span><span class="dv">2</span>)</span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a><span class="co"># need to show that the probability of being excluded did not relate to group membership</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>non_learn_prob <span class="ot">&lt;-</span> <span class="fu">binom.test</span>(<span class="fu">sum</span>(non_learn<span class="sc">$</span>train_type <span class="sc">==</span> <span class="st">"stable"</span>), <span class="fu">length</span>(non_learn<span class="sc">$</span>train_type), <span class="fl">0.5</span>)</span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>non_learn_prob <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">n_stable =</span> non_learn_prob<span class="sc">$</span>statistic,</span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>                         <span class="at">n_var =</span> non_learn_prob<span class="sc">$</span>parameter <span class="sc">-</span> non_learn_prob<span class="sc">$</span>statistic,</span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>                         <span class="at">total =</span> n_stable <span class="sc">+</span> n_var,</span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>                         <span class="at">n_total =</span> <span class="dv">100</span> <span class="sc">-</span> total,</span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>                         <span class="at">p =</span> <span class="fu">round</span>(non_learn_prob<span class="sc">$</span>p.value, <span class="dv">2</span>),</span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>                         <span class="at">id =</span> <span class="st">"val"</span>)</span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(non_learn_prob, <span class="fu">paste</span>(res_path, <span class="st">'non_learn_grp_mem.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(onset_dat, <span class="fu">paste</span>(data_path, <span class="st">'exp_lt_onset_cln.csv'</span>, <span class="at">sep=</span><span class="st">''</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <p>Now plot the learning onset scores -</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first, I rename the k4 onset variable so I can plot it</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> onset_dat <span class="sc">%&gt;%</span> <span class="fu">rename</span>(<span class="at">k4_on =</span> k4_onset_flt)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># also remove subs with NA</span></span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>subs_w_na <span class="ot">&lt;-</span> <span class="fu">unique</span>(onset_dat<span class="sc">$</span>sub[<span class="fu">is.na</span>(onset_dat<span class="sc">$</span>k4_on)])</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> onset_dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span>sub <span class="sc">%in%</span> subs_w_na)</span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># now remove subs who don't have 2 observations each </span></span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>onset_dat <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(onset_dat, </span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>                        onset_dat <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(sub) <span class="sc">%&gt;%</span> <span class="fu">summarise</span>(<span class="at">N=</span><span class="fu">length</span>(sub))) <span class="sc">%&gt;%</span></span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(N <span class="sc">==</span> <span class="dv">2</span>)</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>col_scheme <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'#ccba72ff'</span>, <span class="st">'#4c5454ff'</span>)</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>k4_by_grp_fname <span class="ot">=</span> <span class="fu">paste</span>(fig_path,<span class="st">'k4_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>)</span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="fu">plt_tran_bp_4paper_andtlks</span>(k4_by_grp_fname,</span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>                trn_bp_wdth,</span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>                trn_bp_hgt,</span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>                onset_dat,</span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>                <span class="st">'k4_on ~ transfer*train_type'</span>, </span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>                col_scheme,</span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Onset'</span>,</span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>                <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">200</span>),</span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>                <span class="at">fig_lab =</span> <span class="st">'A'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>col_scheme <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'#ccba72ff'</span>, <span class="st">'#4c5454ff'</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>k4_by_grp_fname <span class="ot">=</span> <span class="fu">paste</span>(fig_path,<span class="st">'k4_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plt_tran_bp_4paper_andtlks</span>(k4_by_grp_fname,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>                trn_bp_wdth,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>                trn_bp_hgt,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>                onset_dat,</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">'k4_onset ~ transfer*train_type'</span>, </span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>                col_scheme,</span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Onset'</span>,</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">200</span>),</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">fig_lab =</span> <span class="st">'A'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>png 
@@ -928,33 +906,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first set the factors to be factors</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>sub <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>sub)</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>train_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>train_type)</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(onset_dat<span class="sc">$</span>train_type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'stable'</span>,<span class="st">'variable'</span>)</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>transfer <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>transfer)</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>onset_aov <span class="ot">&lt;-</span> </span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aov_ez</span>(<span class="st">"sub"</span>, <span class="st">"k4_on"</span>, onset_dat, </span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">within =</span> <span class="st">"transfer"</span>,</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">between =</span> <span class="st">"train_type"</span>)</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat <span class="ot">&lt;-</span> <span class="fu">convert_aov_to_df</span>(onset_aov, <span class="st">"onset"</span>)</span>
-<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co"># do some manual rounding of columns</span></span>
-<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>Fstat, <span class="dv">2</span>)</span>
-<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>ges <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>ges, <span class="dv">3</span>)</span>
-<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>p, <span class="dv">3</span>)</span>
-<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a><span class="co"># now save</span></span>
-<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_aov_dat, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_aov.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first set the factors to be factors</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>sub <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>sub)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>train_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>train_type)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(onset_dat<span class="sc">$</span>train_type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'stable'</span>,<span class="st">'variable'</span>)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>onset_dat<span class="sc">$</span>transfer <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(onset_dat<span class="sc">$</span>transfer)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>onset_aov <span class="ot">&lt;-</span> </span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aov_ez</span>(<span class="st">"sub"</span>, <span class="st">"k4_onset"</span>, onset_dat, </span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">within =</span> <span class="st">"transfer"</span>,</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">between =</span> <span class="st">"train_type"</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat <span class="ot">&lt;-</span> <span class="fu">convert_aov_to_df</span>(onset_aov, <span class="st">"onset"</span>)</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a><span class="co"># do some manual rounding of columns</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>Fstat, <span class="dv">2</span>)</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>ges <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>ges, <span class="dv">3</span>)</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>lt_onset_aov_dat<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_aov_dat<span class="sc">$</span>p, <span class="dv">3</span>)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a><span class="co"># now save</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_aov_dat, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_aov.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: Effect of group and transfer condition on knowledge onset</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Effect of group and transfer condition on knowledge onset"</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_onset_aov_dat, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: Effect of group and transfer condition on knowledge onset</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "Effect of group and transfer condition on knowledge onset"</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_onset_aov_dat, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -974,27 +952,27 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: left;">onset</td>
 <td style="text-align: left;">train_type</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">4.21</td>
-<td style="text-align: right;">0.03</td>
-<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.96</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">onset</td>
 <td style="text-align: left;">transfer</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">17.29</td>
-<td style="text-align: right;">0.11</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">11.24</td>
+<td style="text-align: right;">0.05</td>
 <td style="text-align: right;">0.00</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">onset</td>
 <td style="text-align: left;">train_type:transfer</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">5.11</td>
-<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">4.79</td>
+<td style="text-align: right;">0.02</td>
 <td style="text-align: right;">0.03</td>
 </tr>
 </tbody>
@@ -1005,20 +983,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get emms for the main effect</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>lt_onset_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">emmeans</span>(onset_aov, <span class="fu">c</span>(<span class="st">"transfer"</span>)))</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>cols2round <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"emmean"</span>, <span class="st">"SE"</span>)</span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>lt_onset_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_onset_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_emm_transfer.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get emms for the main effect</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>lt_onset_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">emmeans</span>(onset_aov, <span class="fu">c</span>(<span class="st">"transfer"</span>)))</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>cols2round <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"emmean"</span>, <span class="st">"SE"</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>lt_onset_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_onset_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_emm_transfer.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EMMs for transfer condition on knowledge onset</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "EMMs for transfer condition on knowledge onset"</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_onset_emm, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EMMs for transfer condition on knowledge onset</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "EMMs for transfer condition on knowledge onset"</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_onset_emm, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -1035,19 +1013,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">comp</td>
-<td style="text-align: right;">42.83</td>
-<td style="text-align: right;">2.52</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">37.80</td>
-<td style="text-align: right;">47.86</td>
+<td style="text-align: right;">50.04</td>
+<td style="text-align: right;">4.14</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">41.80</td>
+<td style="text-align: right;">58.27</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">part</td>
-<td style="text-align: right;">56.93</td>
-<td style="text-align: right;">2.26</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">52.42</td>
-<td style="text-align: right;">61.44</td>
+<td style="text-align: right;">67.12</td>
+<td style="text-align: right;">3.61</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">59.94</td>
+<td style="text-align: right;">74.31</td>
 </tr>
 </tbody>
 </table>
@@ -1057,39 +1035,115 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(onset_aov, <span class="fu">c</span>(<span class="st">"train_type"</span>, <span class="st">"transfer"</span>))</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the contrasts used for the task jump analysis and rename for current purposes</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># You can use these across all measures</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts <span class="ot">&lt;-</span> train_ph_win</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>stable_comp_vs_mix <span class="ot">&lt;-</span> lt_ph_win_contrasts<span class="sc">$</span>stable_sw_v_st</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>variable_comp_vs_mix <span class="ot">&lt;-</span> lt_ph_win_contrasts<span class="sc">$</span>variable_sw_v_st</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>stable_sw_v_st <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>variable_sw_v_st <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts <span class="ot">&lt;-</span> train_ph_btwn</span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_comp <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_stay</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_mix <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_switch</span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_stay <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_switch <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="do">################################################################################</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>lt_onset_win <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_onset_int_emm, lt_ph_win_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>lt_onset_btwn <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_onset_int_emm, lt_ph_btwn_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">rbind</span>(lt_onset_win, lt_onset_btwn))</span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>estimate <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>estimate, <span class="dv">2</span>)</span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>SE <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>SE, <span class="dv">2</span>)</span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>p.value <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>p.value, <span class="dv">2</span>)</span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>t.ratio<span class="sc">^</span><span class="dv">2</span>, <span class="dv">2</span>)</span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_contrasts, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_int_ph.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a><span class="co"># now also save the emms for the interaction</span></span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(lt_onset_int_emm)</span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_onset_int_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">paste</span>(lt_onset_int_emm<span class="sc">$</span>train_type, lt_onset_int_emm<span class="sc">$</span>transfer, <span class="at">sep=</span><span class="st">"_"</span>)</span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_int_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_int_emm.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(onset_aov, <span class="fu">c</span>(<span class="st">"train_type"</span>, <span class="st">"transfer"</span>))</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="co"># copy the contrasts used for the task jump analysis and rename for current purposes</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="co"># You can use these across all measures</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts <span class="ot">&lt;-</span> train_ph_win</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>stable_comp_vs_mix <span class="ot">&lt;-</span> lt_ph_win_contrasts<span class="sc">$</span>stable_sw_v_st</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>variable_comp_vs_mix <span class="ot">&lt;-</span> lt_ph_win_contrasts<span class="sc">$</span>variable_sw_v_st</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>stable_sw_v_st <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>lt_ph_win_contrasts<span class="sc">$</span>variable_sw_v_st <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts <span class="ot">&lt;-</span> train_ph_btwn</span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_comp <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_stay</span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_mix <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_switch</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>lt_ph_btwn_contrasts<span class="sc">$</span>grp_stay <span class="ot">&lt;-</span> lt_ph_btwn_contrasts<span class="sc">$</span>grp_switch <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="do">################################################################################</span></span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>lt_onset_win <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_onset_int_emm, lt_ph_win_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>lt_onset_btwn <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_onset_int_emm, lt_ph_btwn_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">rbind</span>(lt_onset_win, lt_onset_btwn))</span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>estimate <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>estimate, <span class="dv">2</span>)</span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>SE <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>SE, <span class="dv">2</span>)</span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>p.value <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>p.value, <span class="dv">2</span>)</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>lt_onset_contrasts<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_onset_contrasts<span class="sc">$</span>t.ratio<span class="sc">^</span><span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_contrasts, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_int_ph.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a><span class="co"># now also save the emms for the interaction</span></span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(lt_onset_int_emm)</span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_onset_int_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>lt_onset_int_emm<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">paste</span>(lt_onset_int_emm<span class="sc">$</span>train_type, lt_onset_int_emm<span class="sc">$</span>transfer, <span class="at">sep=</span><span class="st">"_"</span>)</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_onset_int_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_onset_int_emm.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | label: EMMs for group by transfer condition on knowledge onset</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="co"># | tbl-cap: "EMMs for group by transfer condition on knowledge onset"</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_onset_int_emm, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 13%">
+<col style="width: 10%">
+<col style="width: 7%">
+<col style="width: 4%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">train_type</th>
+<th style="text-align: left;">transfer</th>
+<th style="text-align: right;">emmean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">df</th>
+<th style="text-align: right;">lower.CL</th>
+<th style="text-align: right;">upper.CL</th>
+<th style="text-align: left;">id</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">stable</td>
+<td style="text-align: left;">comp</td>
+<td style="text-align: right;">44.29</td>
+<td style="text-align: right;">5.99</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">32.37</td>
+<td style="text-align: right;">56.21</td>
+<td style="text-align: left;">stable_comp</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">variable</td>
+<td style="text-align: left;">comp</td>
+<td style="text-align: right;">55.78</td>
+<td style="text-align: right;">5.72</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">44.40</td>
+<td style="text-align: right;">67.16</td>
+<td style="text-align: left;">variable_comp</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">stable</td>
+<td style="text-align: left;">part</td>
+<td style="text-align: right;">72.54</td>
+<td style="text-align: right;">5.23</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">62.14</td>
+<td style="text-align: right;">82.93</td>
+<td style="text-align: left;">stable_part</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">variable</td>
+<td style="text-align: left;">part</td>
+<td style="text-align: right;">61.71</td>
+<td style="text-align: right;">4.99</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">51.79</td>
+<td style="text-align: right;">71.63</td>
+<td style="text-align: left;">variable_part</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="cell">
 <details class="code-fold">
@@ -1126,41 +1180,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td style="text-align: left;">stable</td>
 <td style="text-align: left;">comp</td>
-<td style="text-align: right;">42.47</td>
-<td style="text-align: right;">3.64</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">35.20</td>
-<td style="text-align: right;">49.74</td>
+<td style="text-align: right;">44.29</td>
+<td style="text-align: right;">5.99</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">32.37</td>
+<td style="text-align: right;">56.21</td>
 <td style="text-align: left;">stable_comp</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">variable</td>
 <td style="text-align: left;">comp</td>
-<td style="text-align: right;">43.19</td>
-<td style="text-align: right;">3.49</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">36.22</td>
-<td style="text-align: right;">50.16</td>
+<td style="text-align: right;">55.78</td>
+<td style="text-align: right;">5.72</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">44.40</td>
+<td style="text-align: right;">67.16</td>
 <td style="text-align: left;">variable_comp</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">stable</td>
 <td style="text-align: left;">part</td>
-<td style="text-align: right;">64.24</td>
-<td style="text-align: right;">3.27</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">57.72</td>
-<td style="text-align: right;">70.75</td>
+<td style="text-align: right;">72.54</td>
+<td style="text-align: right;">5.23</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">62.14</td>
+<td style="text-align: right;">82.93</td>
 <td style="text-align: left;">stable_part</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">variable</td>
 <td style="text-align: left;">part</td>
-<td style="text-align: right;">49.62</td>
-<td style="text-align: right;">3.13</td>
-<td style="text-align: right;">69</td>
-<td style="text-align: right;">43.38</td>
-<td style="text-align: right;">55.87</td>
+<td style="text-align: right;">61.71</td>
+<td style="text-align: right;">4.99</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">51.79</td>
+<td style="text-align: right;">71.63</td>
 <td style="text-align: left;">variable_part</td>
 </tr>
 </tbody>
@@ -1168,12 +1222,607 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </section>
+<section id="accuracy-data" class="level4">
+<h4 class="anchored" data-anchor-id="accuracy-data">Accuracy data</h4>
+<p>Now I wrangle the accuracy data so I can apply the same analysis.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>lt_acc <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">paste</span>(data_path, <span class="st">'exp_lt_avg.csv'</span>, <span class="at">sep=</span><span class="st">''</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ses<span class="sc">==</span><span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(sub, transfer, full_transfer_first, train_type, accuracy) <span class="sc">%&gt;%</span> </span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">train_type=</span><span class="fu">recode</span>(train_type, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">'stable'</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">'variable'</span>),</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">transfer=</span><span class="fu">recode</span>(transfer, <span class="st">`</span><span class="at">1</span><span class="st">`</span> <span class="ot">=</span> <span class="st">'identity'</span>, <span class="st">`</span><span class="at">2</span><span class="st">`</span> <span class="ot">=</span> <span class="st">'mixed'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>So now we have the data, we can plot it</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="co"># now I can plot the data</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>lt_acc_by_grp_fname <span class="ot">=</span> <span class="fu">paste</span>(fig_path,<span class="st">'lt_acc_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plt_tran_bp_4paper_andtlks</span>(lt_acc_by_grp_fname,</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>                trn_bp_wdth,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>                trn_bp_hgt,</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>                lt_acc,</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>                <span class="st">'accuracy ~ transfer*train_type'</span>, </span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a>                col_scheme,</span>
+<span id="cb30-9"><a href="#cb30-9" aria-hidden="true" tabindex="-1"></a>                <span class="st">'Accuracy'</span>,</span>
+<span id="cb30-10"><a href="#cb30-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">c</span>(<span class="fl">0.6</span>, <span class="dv">1</span>),</span>
+<span id="cb30-11"><a href="#cb30-11" aria-hidden="true" tabindex="-1"></a>                <span class="at">fig_lab =</span> <span class="st">'B'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/lt_acc_by_grp_4tlks.svg" class="img-fluid figure-img"></p>
+<figcaption>Fig: Effect of Group and Condition on Accuracy</figcaption>
+</figure>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first set the factors to be factors</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>lt_acc<span class="sc">$</span>sub <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_acc<span class="sc">$</span>sub)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>lt_acc<span class="sc">$</span>train_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_acc<span class="sc">$</span>train_type)</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(lt_acc<span class="sc">$</span>train_type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'stable'</span>,<span class="st">'variable'</span>)</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>lt_acc<span class="sc">$</span>transfer <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_acc<span class="sc">$</span>transfer)</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>lt_acc_aov <span class="ot">&lt;-</span> </span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aov_ez</span>(<span class="st">"sub"</span>, <span class="st">"accuracy"</span>, lt_acc, </span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">within =</span> <span class="st">"transfer"</span>,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">between =</span> <span class="st">"train_type"</span>)</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>lt_acc_aov_dat <span class="ot">&lt;-</span> <span class="fu">convert_aov_to_df</span>(lt_acc_aov, <span class="st">"lt_acc"</span>)</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="co"># do some manual rounding of columns</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>lt_acc_aov_dat<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_aov_dat<span class="sc">$</span>Fstat, <span class="dv">2</span>)</span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a>lt_acc_aov_dat<span class="sc">$</span>ges <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_aov_dat<span class="sc">$</span>ges, <span class="dv">3</span>)</span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a>lt_acc_aov_dat<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_aov_dat<span class="sc">$</span>p, <span class="dv">3</span>)</span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a><span class="co"># now save</span></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_acc_aov_dat, <span class="fu">paste</span>(res_path, <span class="st">'lt_acc_aov.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>There is a significant main effect of condition, so lets get the estimated marginal means -</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get emms for the main effect</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>lt_acc_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">emmeans</span>(lt_acc_aov, <span class="fu">c</span>(<span class="st">"transfer"</span>)))</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>cols2round <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"emmean"</span>, <span class="st">"SE"</span>)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>lt_acc_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_acc_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_acc_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_acc_emm_transfer.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: EMMs for transfer condition on accuracy</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "EMMs for transfer condition on accuracy"</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_acc_emm, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">transfer</th>
+<th style="text-align: right;">emmean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">df</th>
+<th style="text-align: right;">lower.CL</th>
+<th style="text-align: right;">upper.CL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">identity</td>
+<td style="text-align: right;">0.93</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.92</td>
+<td style="text-align: right;">0.95</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">mixed</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.88</td>
+<td style="text-align: right;">0.92</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Now I follow up the group x transfer interaction</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>lt_acc_int_emm <span class="ot">&lt;-</span> <span class="fu">emmeans</span>(lt_acc_aov, <span class="fu">c</span>(<span class="st">"train_type"</span>, <span class="st">"transfer"</span>))</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="do">################################################################################</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>lt_acc_win <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_acc_int_emm, lt_ph_win_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>lt_acc_btwn <span class="ot">&lt;-</span> <span class="fu">contrast</span>(lt_acc_int_emm, lt_ph_btwn_contrasts, <span class="at">adjust=</span><span class="st">"scheffe"</span>)</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>lt_acc_contrasts <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">rbind</span>(lt_acc_win, lt_acc_btwn))</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>lt_acc_contrasts<span class="sc">$</span>estimate <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_contrasts<span class="sc">$</span>estimate, <span class="dv">2</span>)</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>lt_acc_contrasts<span class="sc">$</span>SE <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_contrasts<span class="sc">$</span>SE, <span class="dv">2</span>)</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>lt_acc_contrasts<span class="sc">$</span>p.value <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_contrasts<span class="sc">$</span>p.value, <span class="dv">2</span>)</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>lt_acc_contrasts<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_acc_contrasts<span class="sc">$</span>t.ratio<span class="sc">^</span><span class="dv">2</span>, <span class="dv">2</span>)</span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_acc_contrasts, <span class="fu">paste</span>(res_path, <span class="st">'lt_acc_int_ph.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a><span class="co"># now also save the emms for the interaction</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>lt_acc_int_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(lt_acc_int_emm)</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>lt_acc_int_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_acc_int_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>lt_acc_int_emm<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">paste</span>(lt_acc_int_emm<span class="sc">$</span>train_type, lt_acc_int_emm<span class="sc">$</span>transfer, <span class="at">sep=</span><span class="st">"_"</span>)</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_acc_int_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_acc_int_emm.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | label: EMMs for group by transfer condition on knowledge onset</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="co"># | tbl-cap: "EMMs for group by transfer condition on knowledge onset"</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_acc_contrasts, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">contrast</th>
+<th style="text-align: right;">estimate</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">df</th>
+<th style="text-align: right;">t.ratio</th>
+<th style="text-align: right;">p.value</th>
+<th style="text-align: right;">Fstat</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">stable_comp_vs_mix</td>
+<td style="text-align: right;">-0.06</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">-4.12</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">16.96</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">variable_comp_vs_mix</td>
+<td style="text-align: right;">-0.01</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">-1.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">grp_comp</td>
+<td style="text-align: right;">-0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">-0.94</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">0.89</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">grp_mix</td>
+<td style="text-align: right;">0.03</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">1.50</td>
+<td style="text-align: right;">0.55</td>
+<td style="text-align: right;">2.24</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
-<section id="label-emms-for-group-by-transfer-condition-on-knowledge-onset" class="level1">
-<h1>| label: EMMs for group by transfer condition on knowledge onset</h1>
+<section id="setting-errors" class="level4">
+<h4 class="anchored" data-anchor-id="setting-errors">Setting errors</h4>
+<p>Okies. That is the accuracy measure done. Now I can measure setting errors, defined as selections during transfer, that were relevant during training, that are not relevant now.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>set_err <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">paste</span>(data_path, <span class="st">'exp_lt_evt.csv'</span>, <span class="at">sep=</span><span class="st">''</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">filter</span>(ses <span class="sc">&gt;=</span> <span class="dv">2</span>) </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a><span class="co"># this function ius ugly, but does the job</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>get_other_doors <span class="ot">&lt;-</span> <span class="cf">function</span>(set_err, subj){</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># get the doors that would count as 'setting errors'</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>  sess2_doors <span class="ot">&lt;-</span> set_err <span class="sc">%&gt;%</span> <span class="fu">filter</span>(ses <span class="sc">==</span> <span class="dv">2</span>, </span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>                                    sub <span class="sc">==</span> subj) <span class="sc">%&gt;%</span> </span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>                <span class="fu">select</span>(sub, door, context, door_cc) <span class="sc">%&gt;%</span></span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>                <span class="fu">filter</span>(<span class="fu">as.logical</span>(door_cc)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> <span class="fu">select</span>(sub, door, context)</span>
+<span id="cb37-12"><a href="#cb37-12" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb37-13"><a href="#cb37-13" aria-hidden="true" tabindex="-1"></a>  sess3_doors <span class="ot">&lt;-</span> set_err <span class="sc">%&gt;%</span> <span class="fu">filter</span>(ses <span class="sc">==</span> <span class="dv">3</span>, </span>
+<span id="cb37-14"><a href="#cb37-14" aria-hidden="true" tabindex="-1"></a>                                    sub <span class="sc">==</span> subj) <span class="sc">%&gt;%</span></span>
+<span id="cb37-15"><a href="#cb37-15" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">select</span>(sub, door, context, door_cc) <span class="sc">%&gt;%</span></span>
+<span id="cb37-16"><a href="#cb37-16" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">filter</span>(<span class="fu">as.logical</span>(door_cc)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-17"><a href="#cb37-17" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> <span class="fu">select</span>(sub, door, context) </span>
+<span id="cb37-18"><a href="#cb37-18" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb37-19"><a href="#cb37-19" aria-hidden="true" tabindex="-1"></a>  other_doors <span class="ot">&lt;-</span> sess3_doors <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(context) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">other=</span>sess2_doors<span class="sc">$</span>door[<span class="sc">!</span>sess2_doors<span class="sc">$</span>door <span class="sc">%in%</span> door])</span>
+<span id="cb37-20"><a href="#cb37-20" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb37-21"><a href="#cb37-21" aria-hidden="true" tabindex="-1"></a>  <span class="co"># now bind the new doors to the subject's data</span></span>
+<span id="cb37-22"><a href="#cb37-22" aria-hidden="true" tabindex="-1"></a>  dat <span class="ot">&lt;-</span> set_err <span class="sc">%&gt;%</span> <span class="fu">filter</span>(sub <span class="sc">==</span> subj,</span>
+<span id="cb37-23"><a href="#cb37-23" aria-hidden="true" tabindex="-1"></a>                            ses <span class="sc">==</span> <span class="dv">3</span>)</span>
+<span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>  dat<span class="sc">$</span>door_oc <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>  dat<span class="sc">$</span>door_oc[dat<span class="sc">$</span>context <span class="sc">==</span> <span class="dv">3</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>door <span class="sc">%in%</span> other_doors<span class="sc">$</span>other[other_doors<span class="sc">$</span>context <span class="sc">==</span> <span class="dv">3</span>]] <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>  dat<span class="sc">$</span>door_oc[dat<span class="sc">$</span>context <span class="sc">==</span> <span class="dv">4</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>door <span class="sc">%in%</span> other_doors<span class="sc">$</span>other[other_doors<span class="sc">$</span>context <span class="sc">==</span> <span class="dv">4</span>]] <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb37-27"><a href="#cb37-27" aria-hidden="true" tabindex="-1"></a>  dat<span class="sc">$</span>door_oc[<span class="fu">is.na</span>(dat<span class="sc">$</span>door_oc)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb37-28"><a href="#cb37-28" aria-hidden="true" tabindex="-1"></a>  dat</span>
+<span id="cb37-29"><a href="#cb37-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb37-30"><a href="#cb37-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-31"><a href="#cb37-31" aria-hidden="true" tabindex="-1"></a>subs <span class="ot">&lt;-</span> <span class="fu">unique</span>(set_err<span class="sc">$</span>sub)</span>
+<span id="cb37-32"><a href="#cb37-32" aria-hidden="true" tabindex="-1"></a>lt_set_err_dat <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(subs, get_other_doors, <span class="at">set_err=</span>set_err)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-33"><a href="#cb37-33" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">group_by</span>(sub, train_type, transfer) <span class="sc">%&gt;%</span></span>
+<span id="cb37-34"><a href="#cb37-34" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">summarise</span>(<span class="at">set_err =</span> <span class="fu">mean</span>(door_oc)) <span class="sc">%&gt;%</span></span>
+<span id="cb37-35"><a href="#cb37-35" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Now I have the setting errors, I can plot them -</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># now I can plot the data</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>lt_se_by_grp_fname <span class="ot">=</span> <span class="fu">paste</span>(fig_path,<span class="st">'lt_se_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plt_tran_bp_4paper_andtlks</span>(lt_se_by_grp_fname,</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>                trn_bp_wdth,</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>                trn_bp_hgt,</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>                lt_set_err_dat,</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">'set_err ~ transfer*train_type'</span>, </span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>                col_scheme,</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">'SE'</span>,</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.8</span>),</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">fig_lab =</span> <span class="st">'C'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/lt_se_by_grp_4tlks.svg" class="img-fluid figure-img"></p>
+<figcaption>Fig: Effect of Group and Condition on Setting Errors</figcaption>
+</figure>
+</div>
+<p>Now we have a plot, we can analyse the data</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first set the factors to be factors</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>lt_set_err_dat<span class="sc">$</span>sub <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_set_err_dat<span class="sc">$</span>sub)</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>lt_set_err_dat<span class="sc">$</span>train_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_set_err_dat<span class="sc">$</span>train_type)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(lt_set_err_dat<span class="sc">$</span>train_type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'stable'</span>,<span class="st">'variable'</span>)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>lt_set_err_dat<span class="sc">$</span>transfer <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_set_err_dat<span class="sc">$</span>transfer)</span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(lt_set_err_dat<span class="sc">$</span>transfer) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'id'</span>,<span class="st">'mix'</span>)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>lt_set_err_aov <span class="ot">&lt;-</span> </span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aov_ez</span>(<span class="st">"sub"</span>, <span class="st">"set_err"</span>, lt_set_err_dat, </span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">within =</span> <span class="st">"transfer"</span>,</span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">between =</span> <span class="st">"train_type"</span>)</span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>lt_set_err_aov_dat <span class="ot">&lt;-</span> <span class="fu">convert_aov_to_df</span>(lt_set_err_aov, <span class="st">"lt_se"</span>)</span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a><span class="co"># do some manual rounding of columns</span></span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>lt_set_err_aov_dat<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_set_err_aov_dat<span class="sc">$</span>Fstat, <span class="dv">2</span>)</span>
+<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>lt_set_err_aov_dat<span class="sc">$</span>ges <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_set_err_aov_dat<span class="sc">$</span>ges, <span class="dv">3</span>)</span>
+<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a>lt_set_err_aov_dat<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_set_err_aov_dat<span class="sc">$</span>p, <span class="dv">3</span>)</span>
+<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a><span class="co"># now save</span></span>
+<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_set_err_aov_dat, <span class="fu">paste</span>(res_path, <span class="st">'lt_se_aov.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | label: Effect of group by transfer condition on setting error during test</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="co"># | tbl-cap: "Effect of group by transfer condition on setting error during test"</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_set_err_aov_dat, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">exp</th>
+<th style="text-align: left;">effect</th>
+<th style="text-align: right;">numDF</th>
+<th style="text-align: right;">denDF</th>
+<th style="text-align: right;">Fstat</th>
+<th style="text-align: right;">ges</th>
+<th style="text-align: right;">p</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">lt_se</td>
+<td style="text-align: left;">train_type</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.67</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lt_se</td>
+<td style="text-align: left;">transfer</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">21.34</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">lt_se</td>
+<td style="text-align: left;">train_type:transfer</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">3.56</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.06</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Ok, now lets get the EMMs…</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>lt_set_err_int <span class="ot">&lt;-</span><span class="fu">summary</span>(<span class="fu">emmeans</span>(lt_set_err_aov, <span class="fu">c</span>(<span class="st">"train_type"</span>, <span class="st">"transfer"</span>)))</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>lt_set_err_int[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_set_err_int[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_set_err_int, <span class="fu">paste</span>(res_path, <span class="st">'lt_se_emm_int.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | label: EMMs for group by transfer condition on setting error during test</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># | tbl-cap: "EMMs for group by transfer condition on setting error during test"</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_set_err_int, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">train_type</th>
+<th style="text-align: left;">transfer</th>
+<th style="text-align: right;">emmean</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">df</th>
+<th style="text-align: right;">lower.CL</th>
+<th style="text-align: right;">upper.CL</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">stable</td>
+<td style="text-align: left;">id</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.05</td>
+<td style="text-align: right;">0.10</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">variable</td>
+<td style="text-align: left;">id</td>
+<td style="text-align: right;">0.09</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.07</td>
+<td style="text-align: right;">0.12</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">stable</td>
+<td style="text-align: left;">mix</td>
+<td style="text-align: right;">0.15</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.18</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">variable</td>
+<td style="text-align: left;">mix</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.10</td>
+<td style="text-align: right;">0.15</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 </section>
-<section id="tbl-cap-emms-for-group-by-transfer-condition-on-knowledge-onset" class="level1">
-<h1>| tbl-cap: “EMMs for group by transfer condition on knowledge onset”</h1>
+<section id="general-errors" class="level4">
+<h4 class="anchored" data-anchor-id="general-errors">General errors</h4>
+<p>Now we see whether people were selecting doors that belonged to neither task, more often during the test phase. First I load in the setting error data, and then recode the general error data with respect to the newly defined setting errors.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>lt_gen_err_dat <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(subs, get_other_doors, <span class="at">set_err=</span>set_err)) <span class="sc">%&gt;%</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>   <span class="fu">mutate</span>(<span class="at">door_nc =</span> <span class="fu">case_when</span>(door_nc <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> door_oc <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>                              door_nc <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> door_oc <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>                              door_nc <span class="sc">==</span> <span class="dv">0</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span>                    </span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(sub, train_type, transfer) <span class="sc">%&gt;%</span></span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">summarise</span>(<span class="at">gen_err =</span> <span class="fu">mean</span>(door_nc)) <span class="sc">%&gt;%</span></span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">ungroup</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Lets plot these general errors -</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># now I can plot the data</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>lt_ge_by_grp_fname <span class="ot">=</span> <span class="fu">paste</span>(fig_path,<span class="st">'lt_ge_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="fu">plt_tran_bp_4paper_andtlks</span>(lt_ge_by_grp_fname,</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>                trn_bp_wdth,</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>                trn_bp_hgt,</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>                lt_gen_err_dat,</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>                <span class="st">'gen_err ~ transfer*train_type'</span>, </span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>                col_scheme,</span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>                <span class="st">'GE'</span>,</span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>                <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.8</span>),</span>
+<span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">fig_lab =</span> <span class="st">'D'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="figs/lt_ge_by_grp_4tlks.svg" class="img-fluid figure-img"></p>
+<figcaption>Fig: Effect of Group and Condition on Knowledge Onset</figcaption>
+</figure>
+</div>
+<p>Now I have this, I can analyse the general errors…</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first set the factors to be factors</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>lt_gen_err_dat<span class="sc">$</span>sub <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_gen_err_dat<span class="sc">$</span>sub)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>lt_gen_err_dat<span class="sc">$</span>train_type <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_gen_err_dat<span class="sc">$</span>train_type)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(lt_gen_err_dat<span class="sc">$</span>train_type) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'stable'</span>,<span class="st">'variable'</span>)</span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>lt_gen_err_dat<span class="sc">$</span>transfer <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(lt_gen_err_dat<span class="sc">$</span>transfer)</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="fu">levels</span>(lt_gen_err_dat<span class="sc">$</span>transfer) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'id'</span>,<span class="st">'mix'</span>)</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov <span class="ot">&lt;-</span> </span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aov_ez</span>(<span class="st">"sub"</span>, <span class="st">"gen_err"</span>, lt_gen_err_dat, </span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">within =</span> <span class="st">"transfer"</span>,</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">between =</span> <span class="st">"train_type"</span>)</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov_dat <span class="ot">&lt;-</span> <span class="fu">convert_aov_to_df</span>(lt_gen_err_aov, <span class="st">"lt_ge"</span>)</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="co"># do some manual rounding of columns</span></span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov_dat<span class="sc">$</span>Fstat <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_gen_err_aov_dat<span class="sc">$</span>Fstat, <span class="dv">2</span>)</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov_dat<span class="sc">$</span>ges <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_gen_err_aov_dat<span class="sc">$</span>ges, <span class="dv">3</span>)</span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov_dat<span class="sc">$</span>p <span class="ot">&lt;-</span> <span class="fu">round</span>(lt_gen_err_aov_dat<span class="sc">$</span>p, <span class="dv">3</span>)</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a>lt_gen_err_aov_dat<span class="sc">$</span>id <span class="ot">&lt;-</span> <span class="fu">paste</span>(lt_gen_err_aov_dat<span class="sc">$</span>exp, </span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a>                               lt_gen_err_aov_dat<span class="sc">$</span>effect,</span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>                               <span class="at">sep=</span><span class="st">"_"</span>)</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a><span class="co"># now save</span></span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_gen_err_aov_dat, <span class="fu">paste</span>(res_path, <span class="st">'lt_ge_aov.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># | label: Effect of group by transfer condition on general errors during test</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="co"># | tbl-cap: "Effect of group by transfer condition on general errors during test"</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(lt_gen_err_aov_dat, <span class="at">digits=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 7%">
+<col style="width: 25%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 6%">
+<col style="width: 6%">
+<col style="width: 32%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">exp</th>
+<th style="text-align: left;">effect</th>
+<th style="text-align: right;">numDF</th>
+<th style="text-align: right;">denDF</th>
+<th style="text-align: right;">Fstat</th>
+<th style="text-align: right;">ges</th>
+<th style="text-align: right;">p</th>
+<th style="text-align: left;">id</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">lt_ge</td>
+<td style="text-align: left;">train_type</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.91</td>
+<td style="text-align: left;">lt_ge_train_type</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">lt_ge</td>
+<td style="text-align: left;">transfer</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">4.20</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: left;">lt_ge_transfer</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">lt_ge</td>
+<td style="text-align: left;">train_type:transfer</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">98</td>
+<td style="text-align: right;">2.39</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.12</td>
+<td style="text-align: left;">lt_ge_train_type:transfer</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>And now I print out the EMMs for the effect of transfer task on general errors.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>lt_ge_emm <span class="ot">&lt;-</span> <span class="fu">summary</span>(<span class="fu">emmeans</span>(lt_gen_err_aov, <span class="fu">c</span>(<span class="st">'transfer'</span>)))</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>lt_ge_emm[,cols2round] <span class="ot">&lt;-</span> <span class="fu">apply</span>(lt_ge_emm[,cols2round], <span class="dv">2</span>, round, <span class="dv">2</span>)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(lt_ge_emm, <span class="fu">paste</span>(res_path, <span class="st">'lt_ge_emm.csv'</span>, <span class="at">sep=</span><span class="st">""</span>), <span class="at">row.names=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Then I join up the figs for the paper.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>fnms <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">paste</span>(fig_path, <span class="st">'k4_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>), </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>         <span class="fu">paste</span>(fig_path, <span class="st">'lt_acc_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>),</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>         <span class="fu">paste</span>(fig_path, <span class="st">'lt_se_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>), </span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>         <span class="fu">paste</span>(fig_path, <span class="st">'lt_ge_by_grp'</span>, <span class="at">sep=</span><span class="st">''</span>))</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>ims <span class="ot">=</span> <span class="fu">lapply</span>(fnms, <span class="cf">function</span>(x) <span class="fu">image_read_pdf</span>(<span class="fu">paste</span>(x, <span class="st">'.pdf'</span>, <span class="at">sep=</span><span class="st">''</span>)))</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>top <span class="ot">&lt;-</span> <span class="fu">c</span>(ims[[<span class="dv">1</span>]], ims[[<span class="dv">2</span>]]) <span class="sc">%&gt;%</span></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>         <span class="fu">image_append</span>(<span class="at">stack =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>bottom <span class="ot">&lt;-</span> <span class="fu">c</span>(ims[[<span class="dv">3</span>]], ims[[<span class="dv">4</span>]]) <span class="sc">%&gt;%</span></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>         <span class="fu">image_append</span>(<span class="at">stack=</span><span class="cn">FALSE</span>) </span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>multi <span class="ot">&lt;-</span> <span class="fu">c</span>(top, bottom) <span class="sc">%&gt;%</span> <span class="fu">image_append</span>(<span class="at">stack=</span><span class="cn">TRUE</span>)</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>       </span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>plt_hgt <span class="ot">=</span> j_hgt<span class="sc">*</span><span class="dv">2</span> <span class="co"># get the height of the traj plot</span></span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>plt_wdth <span class="ot">=</span> j_wdth<span class="sc">*</span><span class="dv">2</span></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a><span class="fu">pdf</span>(<span class="fu">paste</span>(fig_path, <span class="st">'lt_results.pdf'</span>, <span class="at">sep=</span><span class="st">''</span>), <span class="at">width=</span>plt_wdth,</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">height=</span>plt_hgt)</span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(multi)</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>png 
+  2 </code></pre>
+</div>
+</div>
+</section>
+</section>
 </section>
 
 </main>

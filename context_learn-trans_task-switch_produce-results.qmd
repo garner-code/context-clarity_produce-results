@@ -66,7 +66,7 @@ loadfonts(device='pdf')
 exp_strs <- c('lt','ts')
 j_wdth <- 10 # this is for the task jumps fig
 j_hgt <- j_wdth*(6/10)
-trn_bp_wdth = j_wdth*.8 # this is for the knowledge onset plot
+trn_bp_wdth = j_wdth/2 # this is for the knowledge onset plot
 trn_bp_hgt = j_hgt
 
 ```
@@ -121,7 +121,7 @@ Now lets apply the ANOVA model to the data -
 ```{r, results='hide', message=FALSE}
 
 # first set the factors to be factors
-jumps$sub <- as.factor(jumps$sub)
+#jumps$sub <- as.factor(jumps$sub)
 jumps$train_type <- as.factor(jumps$train_type)
 levels(jumps$train_type) <- c('stable','variable')
 jumps$switch <- as.factor(jumps$switch)
@@ -132,6 +132,7 @@ levels(jumps$switch) <- c('stay','switch')
 afex_options(emmeans_model = "multivariate")
 # perform the statistical model
 exp_strs <- unique(jumps$exp)
+
 tj_aovs <- lapply(exp_strs, function(x) 
   aov_ez("sub", "jumps", jumps %>% filter(exp == x), 
          within = "switch",
@@ -161,8 +162,6 @@ tj_aov_dat$p <- round(tj_aov_dat$p, 3)
 # now an id column for referencing in overleaf
 tj_aov_dat$id <- paste(tj_aov_dat$exp, tj_aov_dat$effect, sep="_") 
 write.csv(tj_aov_dat, paste(res_path, 'task_jumps_aov.csv', sep=""), row.names=FALSE)
-
-kable(tj_aov_dat)
 
 ```
 
@@ -740,6 +739,7 @@ Ok, now lets get the EMMs...
 
 lt_set_err_int <-summary(emmeans(lt_set_err_aov, c("train_type", "transfer")))
 lt_set_err_int[,cols2round] <- apply(lt_set_err_int[,cols2round], 2, round, 2)
+lt_set_err_int$id <- paste(lt_set_err_int$train_type, lt_set_err_int$transfer, sep="_")
 write.csv(lt_set_err_int, paste(res_path, 'lt_se_emm_int.csv', sep=""), row.names=FALSE)
 ```
 
@@ -767,9 +767,7 @@ lt_gen_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err))
   
 ```
 
-
 Lets plot these general errors -
-
 
 ```{r}
 
@@ -787,7 +785,6 @@ plt_tran_bp_4paper_andtlks(lt_ge_by_grp_fname,
                 fig_lab = 'D')
 
 ```
-
 
 ![Fig: Effect of Group and Condition on Knowledge Onset](figs/lt_ge_by_grp_4tlks.svg){fig-align="cent"}
 
@@ -828,6 +825,7 @@ write.csv(lt_gen_err_aov_dat, paste(res_path, 'lt_ge_aov.csv', sep=""), row.name
 # | tbl-cap: "Effect of group by transfer condition on general errors during test"
 kable(lt_gen_err_aov_dat, digits=2)
 ```
+
 And now I print out the EMMs for the effect of transfer task on general errors.
 
 ```{r}
@@ -838,7 +836,6 @@ write.csv(lt_ge_emm, paste(res_path, 'lt_ge_emm.csv', sep=""), row.names=FALSE)
 ```
 
 Then I join up the figs for the paper.
-
 
 ```{r, message=FALSE}
 
@@ -856,9 +853,274 @@ bottom <- c(ims[[3]], ims[[4]]) %>%
 multi <- c(top, bottom) %>% image_append(stack=TRUE)
        
 plt_hgt = j_hgt*2 # get the height of the traj plot
-plt_wdth = j_wdth*2
+plt_wdth = j_wdth
 pdf(paste(fig_path, 'lt_results.pdf', sep=''), width=plt_wdth,
     height=plt_hgt)
 plot(multi)
 dev.off()
 ```
+
+## Experiment Two
+
+### How did training impact task jumps?
+
+We haev already plotted this data, to demonstrate it looks the same as Experiment One. We can remind ourselves of the ANOVA output here -
+
+```{r, results='hide', message=FALSE}
+
+kable(tj_aov_dat)
+
+```
+
+As before we see a main effect of group and a group x switch interaction, but we don't see a main effect of switch. Lets break this down further
+
+```{r}
+
+tj_emm_int_ts <- emmeans(tj_aovs[["ts"]], c("train_type", "switch"))
+kable(tj_emm_int_ts)
+```
+
+```{r}
+
+tj_contrasts_win_ts <- contrast(tj_emm_int_ts, train_ph_win, adjust="scheffe")
+tj_contrasts_btwn_ts <- contrast(tj_emm_int_ts, train_ph_btwn, adjust="scheffe")
+tj_contrasts_ts <- summary(rbind(tj_contrasts_win_ts, tj_contrasts_btwn_ts))
+tj_contrasts_ts$estimate <- round(tj_contrasts_ts$estimate, 2)
+tj_contrasts_ts$SE <- round(tj_contrasts_ts$SE, 2)
+tj_contrasts_ts$p.value <- round(tj_contrasts_ts$p.value, 2)
+tj_contrasts_ts$Fstat <- round(tj_contrasts_ts$t.ratio^2, 2)
+
+write.csv(tj_contrasts_ts, paste(res_path, 'task_jumps_post_hoc_ts.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: post hoc contrasts on task jumps
+#| tbl-cap: "post hoc contrasts switch on task jumps"
+kable(tj_contrasts_ts, digits=2)
+```
+
+Now save the table of estimated marginal means for reporting
+
+```{r, message=FALSE}
+
+tj_emm_int_ts <- summary(tj_emm_int_ts)
+tj_emm_int_ts$emmean <- round(tj_emm_int_ts$emmean,2)
+tj_emm_int_ts$SE <- round(tj_emm_int_ts$SE,2)
+tj_emm_int_ts$id <- paste(tj_emm_int_ts$train_type, tj_emm_int_ts$switch, sep="_")
+write.csv(tj_emm_int_ts, paste(res_path, 'task_jumps_emms_ts.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: task jump emms
+#| tbl-cap: "task jump emms"
+kable(tj_emm_int_ts, digits=2)
+```
+
+### How did training affect general errors?
+
+Now we apply the same analysis as above, but to the general errors -
+
+Let's recap what the omnibus ANOVA said -
+
+```{r}
+#| label: effect of group and switch on general errors
+#| tbl-cap: "effect of group and switch on general errors"
+kable(er_aov_dat, digits=2)
+```
+
+In line with Experiment One, we see a main effect of switch. In contrast, we do see a main effect of group, and in line with Exp 1, we see no group x switch interaction.
+
+```{r, message=FALSE}
+
+# get emms for the group and switch, to show it all at once
+ge_emm_sw_ts <- summary(emmeans(er_aovs[["ts"]], c("train_type","switch")))
+# round the key variables to 2 dp
+vars2round <- c("emmean", "SE")
+ge_emm_sw_ts[,vars2round] <- apply(ge_emm_sw_ts[,vars2round], 2, round, 2)
+ge_emm_sw_ts$id <- paste(ge_emm_sw_ts$train_type, ge_emm_sw_ts$switch, sep="_")
+# save
+write.csv(ge_emm_sw_ts, paste(res_path, 'ge_emms_int_ts.csv', sep=""), row.names=FALSE)
+```
+
+```{r}
+
+#| label: EMMs for group and switch on general errors
+#| tbl-cap: "EMMs for group and switch on general errors"
+kable(ge_emm_sw_ts, digits=2)
+```
+
+### The impact of training on task switchin
+
+#### RT
+
+The first thing we want to test is whether training impacted how long it takes to select the first location (accurately) on stay compared to switch trials.
+
+First steps are to wrangle the routine and group x task switch data, and look at rts for each group and condition as a boxplot.
+
+```{r, message=FALSE, results='hide', warning=FALSE}
+
+ts_test_dat <- read.csv(paste(data_path, 'exp_ts_avg.csv', sep='')) %>% 
+  filter(ses==3) %>%
+  select(sub, train_type, context, switch, accuracy, setting_sticks, setting_slips, rt_correct) %>% 
+  group_by(sub, train_type, switch) %>%
+  summarise(accuracy=mean(accuracy),
+            setting_sticks = mean(setting_sticks),
+            setting_slipes = mean(setting_slips),
+            rt_correct = mean(rt_correct)) %>%
+  ungroup() %>%
+  mutate(train_type=recode(train_type, `1` = 'stable', `2` = 'variable'),
+         switch=recode(switch, `0` = 'stay', `1` = 'switch'))
+
+write.csv(ts_test_dat, paste(res_path, 'ts_test_dat.csv', sep=""), row.names=FALSE)
+```
+
+Now plot the rt scores -
+
+```{r, message=FALSE}
+
+col_scheme = c('#ccba72ff', '#4c5454ff')
+
+rt_ts_by_grp_fname = paste(fig_path,'ts_rt_by_grp', sep='')
+plt_tran_bp_4paper_andtlks(rt_ts_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                ts_test_dat,
+                'rt_correct ~ switch*train_type', 
+                col_scheme,
+                'RT',
+                c(0, 2),
+                fig_lab = 'A')
+```
+
+![Fig: Effect of Group and Condition on RT](figs/ts_rt_by_grp_4tlks.svg){fig-align="cent"}
+
+
+Now we have visualized, we can test for group differences -
+
+```{r, message=FALSE, warning=FALSE}
+
+# first set the factors to be factors
+ts_test_dat$sub <- as.factor(ts_test_dat$sub)
+ts_test_dat$train_type <- as.factor(ts_test_dat$train_type)
+levels(ts_test_dat$train_type) <- c('stable','variable')
+ts_test_dat$switch <- as.factor(ts_test_dat$switch)
+
+ts_rt_aov <- 
+  aov_ez("sub", "rt_correct", ts_test_dat, 
+         within = "switch",
+         between = "train_type")
+
+ts_rt_aov_dat <- convert_aov_to_df(ts_rt_aov, "rt")
+# do some manual rounding of columns
+ts_rt_aov_dat$Fstat <- round(ts_rt_aov_dat$Fstat, 2)
+ts_rt_aov_dat$ges <- round(ts_rt_aov_dat$ges, 3)
+ts_rt_aov_dat$p <- round(ts_rt_aov_dat$p, 3)
+
+# now save
+write.csv(ts_rt_aov_dat, paste(res_path, 'ts_rt_aov.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: Effect of group and switch condition on correct rt
+#| tbl-cap: "Effect of group and switch condition on correct rt"
+kable(ts_rt_aov_dat, digits=2)
+```
+
+This is a resounding lack of effect, but lets get the emms to demonstrate comparability between groups, and non comparability between stay and switch trials -
+
+```{r}
+
+# get emms for the group and switch, to show it all at once
+ts_rt_emm <- summary(emmeans(ts_rt_aov, c("train_type","switch")))
+# round the key variables to 2 dp
+ts_rt_emm[,vars2round] <- apply(ts_rt_emm[,vars2round], 2, round, 2)
+ts_rt_emm$id = paste(ts_rt_emm$train_type, ts_rt_emm$switch, sep="_")
+# save
+write.csv(ts_rt_emm, paste(res_path, 'ts_rts_emms.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: EMMs for group and switch condition on correct rt
+#| tbl-cap: "EMMs for group and switch condition on correct rt"
+kable(ts_rt_emm, digits=2)
+```
+
+#### Accuracy
+
+First, plot accuracy - 
+
+```{r}
+
+ts_acc_by_grp_fname = paste(fig_path,'ts_acc_by_grp', sep='')
+plt_tran_bp_4paper_andtlks(ts_acc_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                ts_test_dat,
+                'accuracy ~ switch*train_type', 
+                col_scheme,
+                'Accuracy',
+                c(0, 1),
+                fig_lab = 'B')
+
+```
+
+![Fig: Effect of Group and Condition on Acc](figs/ts_acc_by_grp_4tlks.svg){fig-align="cent"}
+
+Now analyse accuracy -
+
+```{r, message=FALSE, warning=FALSE}
+
+ts_acc_aov <- 
+  aov_ez("sub", "accuracy", ts_test_dat, 
+         within = "switch",
+         between = "train_type")
+
+ts_acc_aov_dat <- convert_aov_to_df(ts_acc_aov, "acc")
+# do some manual rounding of columns
+ts_acc_aov_dat$Fstat <- round(ts_acc_aov_dat$Fstat, 2)
+ts_acc_aov_dat$ges <- round(ts_acc_aov_dat$ges, 3)
+ts_acc_aov_dat$p <- round(ts_acc_aov_dat$p, 3)
+
+# now save
+write.csv(ts_acc_aov_dat, paste(res_path, 'ts_acc_aov.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: Effect of group and switch condition on correct rt
+#| tbl-cap: "Effect of group and switch condition on correct rt"
+kable(ts_acc_aov_dat, digits=2)
+```
+
+```{r, message=FALSE}
+
+# get emms for the group and switch, to show it all at once
+ts_acc_emm <- summary(emmeans(ts_acc_aov, c("train_type","switch")))
+# round the key variables to 2 dp
+ts_acc_emm[,vars2round] <- apply(ts_acc_emm[,vars2round], 2, round, 2)
+ts_acc_emm$id = paste(ts_acc_emm$train_type, ts_acc_emm$switch, sep="_")
+# save
+write.csv(ts_acc_emm, paste(res_path, 'ts_acc_emms.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r, message=FALSE}
+
+#| label: EMMs for group and switch condition on correct rt
+#| tbl-cap: "EMMs for group and switch condition on correct rt"
+kable(ts_acc_emm, digits=2)
+```
+
+
+So, there is a main effect of group, and a main effect of switch, but again, no interaction.
+
+
