@@ -965,12 +965,14 @@ First steps are to wrangle the routine and group x task switch data, and look at
 
 ts_test_dat <- read.csv(paste(data_path, 'exp_ts_avg.csv', sep='')) %>% 
   filter(ses==3) %>%
-  select(sub, train_type, context, switch, accuracy, setting_sticks, setting_slips, rt_correct) %>% 
+  select(sub, train_type, context, switch, accuracy, setting_errors, setting_sticks, setting_slips, rt_correct, general_errors) %>% 
   group_by(sub, train_type, switch) %>%
   summarise(accuracy=mean(accuracy),
+            setting_errors = mean(setting_errors),
             setting_sticks = mean(setting_sticks),
             setting_slips = mean(setting_slips),
-            rt_correct = mean(rt_correct)) %>%
+            rt_correct = mean(rt_correct),
+            general_errors = mean(general_errors)) %>%
   ungroup() %>%
   mutate(train_type=recode(train_type, `1` = 'stable', `2` = 'variable'),
          switch=recode(switch, `0` = 'stay', `1` = 'switch'))
@@ -985,7 +987,7 @@ Now plot the rt scores -
 col_scheme = c('#ccba72ff', '#4c5454ff')
 
 rt_ts_by_grp_fname = paste(fig_path,'ts_rt_by_grp', sep='')
-plt_tran_bp_4paper_andtlks(rt_ts_by_grp_fname,
+plt_ts_bp_4paper_andtlks(rt_ts_by_grp_fname,
                 trn_bp_wdth,
                 trn_bp_hgt,
                 ts_test_dat,
@@ -993,7 +995,8 @@ plt_tran_bp_4paper_andtlks(rt_ts_by_grp_fname,
                 col_scheme,
                 'RT',
                 c(0, 2),
-                fig_lab = 'A')
+                fig_lab = 'A',
+                leg_on = FALSE)
 ```
 
 ![Fig: Effect of Group and Condition on RT](figs/ts_rt_by_grp_4tlks.svg){fig-align="cent"}
@@ -1060,7 +1063,7 @@ First, plot accuracy -
 ```{r}
 
 ts_acc_by_grp_fname = paste(fig_path,'ts_acc_by_grp', sep='')
-plt_tran_bp_4paper_andtlks(ts_acc_by_grp_fname,
+plt_ts_bp_4paper_andtlks(ts_acc_by_grp_fname,
                 trn_bp_wdth,
                 trn_bp_hgt,
                 ts_test_dat,
@@ -1068,7 +1071,8 @@ plt_tran_bp_4paper_andtlks(ts_acc_by_grp_fname,
                 col_scheme,
                 'Accuracy',
                 c(0, 1),
-                fig_lab = 'B')
+                fig_lab = 'B',
+                leg_on = FALSE)
 
 ```
 
@@ -1130,7 +1134,7 @@ Now lets plot setting sticks -
 ```{r}
 
 ts_stick_by_grp_fname = paste(fig_path,'ts_stick_by_grp', sep='')
-plt_tran_bp_4paper_andtlks(ts_stick_by_grp_fname,
+plt_ts_bp_4paper_andtlks(ts_stick_by_grp_fname,
                 trn_bp_wdth,
                 trn_bp_hgt,
                 ts_test_dat,
@@ -1138,7 +1142,8 @@ plt_tran_bp_4paper_andtlks(ts_stick_by_grp_fname,
                 col_scheme,
                 'Sticks',
                 c(0, 0.8),
-                fig_lab = 'C')
+                fig_lab = 'C',
+                leg_on=TRUE)
 
 ```
 
@@ -1188,12 +1193,12 @@ write.csv(ts_stick_emm, paste(res_path, 'ts_stick_emms.csv', sep=""), row.names=
 kable(ts_stick_emm, digits=2)
 ```
 
-#### Setting slips
+#### Setting Slips
 
 ```{r}
 
 ts_slip_by_grp_fname = paste(fig_path,'ts_slip_by_grp', sep='')
-plt_tran_bp_4paper_andtlks(ts_slip_by_grp_fname,
+plt_ts_bp_4paper_andtlks(ts_slip_by_grp_fname,
                 trn_bp_wdth,
                 trn_bp_hgt,
                 ts_test_dat,
@@ -1201,7 +1206,8 @@ plt_tran_bp_4paper_andtlks(ts_slip_by_grp_fname,
                 col_scheme,
                 'Slips',
                 c(0, 1),
-                fig_lab = 'D')
+                fig_lab = 'D',
+                leg_on=TRUE)
 
 ```
 
@@ -1252,3 +1258,183 @@ write.csv(ts_slip_emm, paste(res_path, 'ts_slip_emms.csv', sep=""), row.names=FA
 #| tbl-cap: "EMMs for group and switch condition on slips"
 kable(ts_slip_emm, digits=2)
 ```
+
+#### Setting Errors
+
+I am going to analyse overall setting errors because setting sticks and slips tell me the same thing.
+
+First, lets plot...
+
+```{r}
+
+ts_se_by_grp_fname = paste(fig_path,'ts_se_by_grp', sep='')
+plt_ts_bp_4paper_andtlks(ts_se_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                ts_test_dat,
+                'setting_errors ~ switch*train_type', 
+                col_scheme,
+                'SE',
+                c(0, 0.8),
+                fig_lab = 'C',
+                leg_on = FALSE)
+
+```
+
+![Fig: Effect of Group and Condition on Set Errs](figs/ts_se_by_grp_4tlks.svg){fig-align="cent"}
+
+And now I run the ANOVA
+
+```{r, message=FALSE, warning=FALSE}
+
+ts_se_aov <- 
+  aov_ez("sub", "setting_errors", ts_test_dat, 
+         within = "switch",
+         between = "train_type")
+
+ts_se_aov_dat <- convert_aov_to_df(ts_se_aov, "stick")
+# do some manual rounding of columns
+ts_se_aov_dat$Fstat <- round(ts_se_aov_dat$Fstat, 2)
+ts_se_aov_dat$ges <- round(ts_se_aov_dat$ges, 3)
+ts_se_aov_dat$p <- round(ts_se_aov_dat$p, 3)
+
+# now save
+write.csv(ts_se_aov_dat, paste(res_path, 'ts_se_aov.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: Effect of group and switch condition on correct rt
+#| tbl-cap: "Effect of group and switch condition on correct rt"
+kable(ts_se_aov_dat, digits=2)
+```
+
+```{r}
+
+# get emms for the group and switch, to show it all at once
+ts_se_emm <- summary(emmeans(ts_se_aov, c("train_type","switch")))
+# round the key variables to 2 dp
+ts_se_emm[,vars2round] <- apply(ts_se_emm[,vars2round], 2, round, 2)
+ts_se_emm$id = paste(ts_se_emm$train_type, ts_se_emm$switch, sep="_")
+# save
+write.csv(ts_se_emm, paste(res_path, 'ts_se_emm.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: EMMs for group and switch condition on setting errors
+#| tbl-cap: "EMMs for group and switch condition on setting errors"
+kable(ts_se_emm, digits=2)
+```
+
+#### General Errors
+
+And finally! General Errors...
+
+```{r}
+
+ts_ge_by_grp_fname = paste(fig_path,'ts_ge_by_grp', sep='')
+plt_ts_bp_4paper_andtlks(ts_ge_by_grp_fname,
+                trn_bp_wdth,
+                trn_bp_hgt,
+                ts_test_dat,
+                'general_errors ~ switch*train_type', 
+                col_scheme,
+                'GE',
+                c(0, 0.8),
+                fig_lab = 'D',
+                leg_on = TRUE)
+
+```
+
+![Fig: Effect of Group and Condition on Gen Errs](figs/ts_ge_by_grp_4tlks.svg){fig-align="cent"}
+
+```{r, message=FALSE, warning=FALSE}
+
+ts_ge_aov <- 
+  aov_ez("sub", "general_errors", ts_test_dat, 
+         within = "switch",
+         between = "train_type")
+
+ts_ge_aov_dat <- convert_aov_to_df(ts_ge_aov, "stick")
+# do some manual rounding of columns
+ts_ge_aov_dat$Fstat <- round(ts_ge_aov_dat$Fstat, 2)
+ts_ge_aov_dat$ges <- round(ts_ge_aov_dat$ges, 3)
+ts_ge_aov_dat$p <- round(ts_ge_aov_dat$p, 3)
+
+# now save
+write.csv(ts_ge_aov_dat, paste(res_path, 'ts_ge_aov.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: Effect of group and switch condition on correct rt
+#| tbl-cap: "Effect of group and switch condition on correct rt"
+kable(ts_ge_aov_dat, digits=2)
+```
+
+
+```{r}
+
+# get emms for the group and switch, to show it all at once
+ts_ge_emm <- summary(emmeans(ts_ge_aov, c("train_type","switch")))
+# round the key variables to 2 dp
+ts_ge_emm[,vars2round] <- apply(ts_ge_emm[,vars2round], 2, round, 2)
+ts_ge_emm$id = paste(ts_ge_emm$train_type, ts_ge_emm$switch, sep="_")
+# save
+write.csv(ts_ge_emm, paste(res_path, 'ts_ge_emm.csv', sep=""), row.names=FALSE)
+
+```
+
+```{r}
+
+#| label: EMMs for group and switch condition on general errors
+#| tbl-cap: "EMMs for group and switch condition on general errors"
+kable(ts_ge_emm, digits=2)
+```
+
+```{r}
+
+tmp = ts_test_dat %>% mutate(gen_err = general_errors+1e-6,
+                             gen_err = log(gen_err))
+
+ts_gel_aov <- 
+  aov_ez("sub", "gen_err", tmp, 
+         within = "switch",
+         between = "train_type")
+
+summary(ts_gel_aov)
+
+```
+
+
+
+And then join up the figs for the paper -
+
+```{r, message=FALSE}
+
+fnms = c(paste(fig_path, 'ts_rt_by_grp', sep=''), 
+         paste(fig_path, 'ts_acc_by_grp', sep=''),
+         paste(fig_path, 'ts_se_by_grp', sep=''), 
+         paste(fig_path, 'ts_ge_by_grp', sep=''))
+
+ims = lapply(fnms, function(x) image_read_pdf(paste(x, '.pdf', sep='')))
+
+top <- c(ims[[1]], ims[[2]]) %>%
+         image_append(stack = FALSE)
+bottom <- c(ims[[3]], ims[[4]]) %>%
+         image_append(stack=FALSE) 
+multi <- c(top, bottom) %>% image_append(stack=TRUE)
+       
+plt_hgt = j_hgt*2 # get the height of the traj plot
+plt_wdth = j_wdth
+pdf(paste(fig_path, 'ts_results.pdf', sep=''), width=plt_wdth,
+    height=plt_hgt)
+plot(multi)
+dev.off()
+```
+
+
