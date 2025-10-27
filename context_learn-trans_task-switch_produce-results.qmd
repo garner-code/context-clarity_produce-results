@@ -1,13 +1,12 @@
 ---
-title: "context_learn-trans_task-switch_produce-results"
+title: "Contextual clarity during training hinders learning transfer but spares task switching"
+output-file: "index.html"
 format: 
   html:
     code-fold: TRUE
     default-image-extension: svg
 editor: visual
 ---
-
-## Produce the results for Contextual clarity during training hinders learning transfer but spares task switching
 
 This notebook provides a computationally reproducible record of the analysis and figure generation for the paper 'Contextual clarity during training hinders learning transfer but spares task switching'.
 
