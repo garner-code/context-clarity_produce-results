@@ -4,7 +4,7 @@
 .httr-oauth
 .DS_Store
 .quarto
-res/
 figs/
+res/
 data-wrangled/
 .Rproj.user
