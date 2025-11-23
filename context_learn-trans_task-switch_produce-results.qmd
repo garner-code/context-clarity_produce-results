@@ -187,6 +187,7 @@ train_ph_btwn <- list("grp_stay" = c(-1, 1, 0, 0), # var > stab
 Now apply them to Experiment 1 task jumps, and write the output as a csv file
 
 ```{r}
+# https://pnb.mcmaster.ca/bennett/psy710/notes/scheffe-emmeans-note.html
 
 tj_emm_int_lt <- emmeans(tj_aovs[["lt"]], c("train_type", "switch"))
 tj_contrasts_win_lt <- contrast(tj_emm_int_lt, train_ph_win, adjust="scheffe")
@@ -1000,7 +1001,6 @@ plt_ts_bp_4paper_andtlks(rt_ts_by_grp_fname,
 
 ![Fig: Effect of Group and Condition on RT](figs/ts_rt_by_grp_4tlks.svg){fig-align="cent"}
 
-
 Now we have visualized, we can test for group differences -
 
 ```{r, message=FALSE, warning=FALSE}
@@ -1057,7 +1057,7 @@ kable(ts_rt_emm, digits=2)
 
 #### Accuracy
 
-First, plot accuracy - 
+First, plot accuracy -
 
 ```{r}
 
@@ -1123,7 +1123,6 @@ write.csv(ts_acc_emm, paste(res_path, 'ts_acc_emms.csv', sep=""), row.names=FALS
 kable(ts_acc_emm, digits=2)
 ```
 
-
 So, there is a main effect of group, and a main effect of switch, but again, no interaction.
 
 #### Setting Sticks
@@ -1146,8 +1145,7 @@ plt_ts_bp_4paper_andtlks(ts_stick_by_grp_fname,
 
 ```
 
-![Fig: Effect of Group and Condition on Sticks](figs/ts_stick_by_grp_4tlks.svg){fig-align="cent"}
-And now analyse -
+![Fig: Effect of Group and Condition on Sticks](figs/ts_stick_by_grp_4tlks.svg){fig-align="cent"} And now analyse -
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -1173,6 +1171,7 @@ write.csv(ts_stick_aov_dat, paste(res_path, 'ts_stick_aov.csv', sep=""), row.nam
 #| tbl-cap: "Effect of group and switch condition on correct rt"
 kable(ts_stick_aov_dat, digits=2)
 ```
+
 ```{r}
 
 # get emms for the group and switch, to show it all at once
@@ -1210,8 +1209,7 @@ plt_ts_bp_4paper_andtlks(ts_slip_by_grp_fname,
 
 ```
 
-![Fig: Effect of Group and Condition on Sticks](figs/ts_slip_by_grp_4tlks.svg){fig-align="cent"}
-And now analyse -
+![Fig: Effect of Group and Condition on Sticks](figs/ts_slip_by_grp_4tlks.svg){fig-align="cent"} And now analyse -
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -1237,7 +1235,6 @@ write.csv(ts_slip_aov_dat, paste(res_path, 'ts_slip_aov.csv', sep=""), row.names
 #| tbl-cap: "Effect of group and switch condition on correct rt"
 kable(ts_slip_aov_dat, digits=2)
 ```
-
 
 ```{r}
 
@@ -1375,7 +1372,6 @@ write.csv(ts_ge_aov_dat, paste(res_path, 'ts_ge_aov.csv', sep=""), row.names=FAL
 kable(ts_ge_aov_dat, digits=2)
 ```
 
-
 ```{r}
 
 # get emms for the group and switch, to show it all at once
@@ -1409,8 +1405,6 @@ summary(ts_gel_aov)
 
 ```
 
-
-
 And then join up the figs for the paper -
 
 ```{r, message=FALSE}
@@ -1435,5 +1429,3 @@ pdf(paste(fig_path, 'ts_results.pdf', sep=''), width=plt_wdth,
 plot(multi)
 dev.off()
 ```
-
-
