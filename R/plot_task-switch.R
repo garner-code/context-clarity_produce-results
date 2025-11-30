@@ -54,8 +54,8 @@ ts_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex, leg_on
                xaxt='n',
                xlab='',
                notch=FALSE))
-  axis(1, at=c(1.5, 4), labels=c('Sta', 'Var'))
+  axis(1, at=c(1.5, 4), labels=c('Stable', 'Variable'), las=1)
   axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
   mtext('Group', side=1, line=2, las=1, cex=xlab_cex)
-  if (leg_on) legend(3.25, 0.8, c('St','Sw'), fill=col_scheme, bty='n')
+  if (leg_on) legend(2, 0.8, c('Stay','Switch'), fill=col_scheme, bty='n')
 }

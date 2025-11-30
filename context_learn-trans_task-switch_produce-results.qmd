@@ -57,9 +57,10 @@ sapply(req_functions, function(x) source(paste(here::here(function_loc),
                                                x, sep="/")))
 
 # # now some font settings
+#library(Cairo)
 library(extrafont)
 #font_import() # run this once only, comment out after first time
-loadfonts(device='pdf')
+loadfonts(device='pdf', quiet=FALSE)
 
 ## now some variables that will help us run code across both experiments
 exp_strs <- c('lt','ts')
@@ -96,10 +97,8 @@ get_jump_data <- function(exp_str, data_path){
 jumps <- do.call(rbind, lapply(exp_strs, get_jump_data,
                                data_path = data_path))
 
-col_scheme = c('#7570b3', '#e7298a')
-
-gen_jumps_plot(jumps,
-               'jumps ~ switch*train_type', 
+col_scheme = c('#7570b3', '#e7298a')                              
+gen_jumps_plot(jumps, 'jumps~switch*train_type', 
                exp_strs,
                col_scheme,
                j_wdth, j_hgt,
@@ -107,7 +106,9 @@ gen_jumps_plot(jumps,
                fig_labs = c('A', 'B'),
                ylabel = 'Jumps',
                xlabel = 'Group',
-               ylims=c(0,5))
+               ylims=c(0,5),
+               title = TRUE,
+               title_strs = c('Exp 1', 'Exp 2'))
 
 ```
 
@@ -196,7 +197,7 @@ tj_contrasts_lt <- summary(rbind(tj_contrasts_win_lt, tj_contrasts_btwn_lt))
 tj_contrasts_lt$estimate <- round(tj_contrasts_lt$estimate, 2)
 tj_contrasts_lt$SE <- round(tj_contrasts_lt$SE, 2)
 tj_contrasts_lt$p.value <- round(tj_contrasts_lt$p.value, 2)
-tj_contrasts_lt$Fstat <- round(tj_contrasts_lt$t.ratio^2, 2)
+tj_contrasts_lt$tstat <- round(tj_contrasts_lt$t.ratio, 2)
 
 write.csv(tj_contrasts_lt, paste(res_path, 'task_jumps_post_hoc_lt.csv', sep=""), row.names=FALSE)
 
@@ -260,7 +261,9 @@ gen_jumps_plot(errors,
                fig_labs = c('C', 'D'),
                ylabel = 'Errors',
                ylims=c(0,1),
-               xlabel = 'Group')
+               xlabel = 'Group',
+               title = FALSE,
+               title_strs = c(NA, NA))
 
 ```
 
@@ -505,7 +508,7 @@ lt_onset_contrasts <- summary(rbind(lt_onset_win, lt_onset_btwn))
 lt_onset_contrasts$estimate <- round(lt_onset_contrasts$estimate, 2)
 lt_onset_contrasts$SE <- round(lt_onset_contrasts$SE, 2)
 lt_onset_contrasts$p.value <- round(lt_onset_contrasts$p.value, 2)
-lt_onset_contrasts$Fstat <- round(lt_onset_contrasts$t.ratio^2, 2)
+lt_onset_contrasts$tstat <- round(lt_onset_contrasts$t.ratio, 2)
 
 write.csv(lt_onset_contrasts, paste(res_path, 'lt_onset_int_ph.csv', sep=""), row.names=FALSE)
 
@@ -621,7 +624,7 @@ lt_acc_contrasts <- summary(rbind(lt_acc_win, lt_acc_btwn))
 lt_acc_contrasts$estimate <- round(lt_acc_contrasts$estimate, 2)
 lt_acc_contrasts$SE <- round(lt_acc_contrasts$SE, 2)
 lt_acc_contrasts$p.value <- round(lt_acc_contrasts$p.value, 2)
-lt_acc_contrasts$Fstat <- round(lt_acc_contrasts$t.ratio^2, 2)
+lt_acc_contrasts$tstat <- round(lt_acc_contrasts$t.ratio, 2)
 
 write.csv(lt_acc_contrasts, paste(res_path, 'lt_acc_int_ph.csv', sep=""), row.names=FALSE)
 
@@ -694,7 +697,7 @@ plt_tran_bp_4paper_andtlks(lt_se_by_grp_fname,
                 lt_set_err_dat,
                 'set_err ~ transfer*train_type', 
                 col_scheme,
-                'SE',
+                'Setting Errors',
                 c(0, 0.8),
                 fig_lab = 'C')
 ```
@@ -780,7 +783,7 @@ plt_tran_bp_4paper_andtlks(lt_ge_by_grp_fname,
                 lt_gen_err_dat,
                 'gen_err ~ transfer*train_type', 
                 col_scheme,
-                'GE',
+                'General Errors',
                 c(0, 0.8),
                 fig_lab = 'D')
 
@@ -888,7 +891,7 @@ tj_contrasts_ts <- summary(rbind(tj_contrasts_win_ts, tj_contrasts_btwn_ts))
 tj_contrasts_ts$estimate <- round(tj_contrasts_ts$estimate, 2)
 tj_contrasts_ts$SE <- round(tj_contrasts_ts$SE, 2)
 tj_contrasts_ts$p.value <- round(tj_contrasts_ts$p.value, 2)
-tj_contrasts_ts$Fstat <- round(tj_contrasts_ts$t.ratio^2, 2)
+tj_contrasts_ts$tstat <- round(tj_contrasts_ts$t.ratio, 2)
 
 write.csv(tj_contrasts_ts, paste(res_path, 'task_jumps_post_hoc_ts.csv', sep=""), row.names=FALSE)
 
@@ -1270,7 +1273,7 @@ plt_ts_bp_4paper_andtlks(ts_se_by_grp_fname,
                 ts_test_dat,
                 'setting_errors ~ switch*train_type', 
                 col_scheme,
-                'SE',
+                'Setting Errors',
                 c(0, 0.8),
                 fig_lab = 'C',
                 leg_on = FALSE)
@@ -1338,7 +1341,7 @@ plt_ts_bp_4paper_andtlks(ts_ge_by_grp_fname,
                 ts_test_dat,
                 'general_errors ~ switch*train_type', 
                 col_scheme,
-                'GE',
+                'General Errors',
                 c(0, 0.8),
                 fig_lab = 'D',
                 leg_on = TRUE)

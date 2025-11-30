@@ -7,7 +7,9 @@ gen_jumps_plot <- function(data,
                             fig_labs,
                             ylabel,
                             ylims,
-                            xlabel){
+                            xlabel,
+                            title,
+                            title_strs){
   
 #  fig_labs = c("C", "D")
   ###########################################################
@@ -28,7 +30,7 @@ gen_jumps_plot <- function(data,
       xlab = ''
     }
     plot_task_jumps(data, plot_formula, exp_strs[i], cols, leg, ylab, ylims, 
-                    xlab)
+                    xlab, title = TRUE, title_str = title_strs[i])
     fig_label(fig_labs[i])
   }
   dev.off()
@@ -47,7 +49,7 @@ gen_jumps_plot <- function(data,
       xlab = ''
     }
     plot_task_jumps(data, plot_formula, exp_strs[i], cols, leg, ylab, ylims, 
-                    xlab)
+                    xlab, title = TRUE, title_str = title_strs[i])
     fig_label(fig_labs[i])
   }
   dev.off()
@@ -68,7 +70,7 @@ gen_jumps_plot <- function(data,
       xlab = ''
     }
     plot_task_jumps(data, plot_formula, exp_strs[i], cols, leg, ylab, ylims, 
-                    xlab)
+                    xlab, title = TRUE, title_str = title_strs[i])
     fig_label(fig_labs[i])
   }
   dev.off()
@@ -87,7 +89,7 @@ gen_jumps_plot <- function(data,
       xlab = ''
     }
     plot_task_jumps(data, plot_formula, exp_strs[i], cols, leg, ylab, ylims, 
-                    xlab)
+                    xlab, title = TRUE, title_str = title_strs[i])
     fig_label(fig_labs[i])
   }
   dev.off()
@@ -101,7 +103,9 @@ plot_task_jumps <- function(data,
                             leg = TRUE,
                             ylab,
                             ylims,
-                            xlab){
+                            xlab,
+                            title = FALSE,
+                            title_str = NA){
   # use this function to create the appropriate box plot
   data$train_type <- as.factor(data$train_type)
   levels(data$train_type) <- c('stable', 'variable')
@@ -117,10 +121,14 @@ plot_task_jumps <- function(data,
                ylab=ylab,
                ylim=ylims,
                xlab=xlab))
-  axis(1, at = c(1.5, 4.5), labels=c('Sta','Var'))
+  axis(1, at = c(1.5, 4.5), labels=c('Stable','Variable'), las=1)
   axis(2, at = ylims)
   if (leg){
-    legend('topleft', c('St','Sw'), fill=col_scheme, bty='n')
+    legend('topleft', c('Stay','Switch'), fill=col_scheme, bty='n')
   }
+  if (title){
+    title(title_str)
+  }
+  
 }
 
