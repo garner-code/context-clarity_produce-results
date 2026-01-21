@@ -3,7 +3,7 @@
 K. Garner (2025).
 
 
-This repo is designed to allow computational reproducibility of the results reported in [insert title and link once you have it]. The overleaf project for the manuscript can be accessed [here]LINK COMING SOON.
+This repo is designed to allow computational reproducibility of the results reported in the paper 'Contextual clarity impacts learning transfer but spares task switching'. 
 
 The code used to run the analysis and produce the figures can be followed [here](https://garner-code.github.io/context-clarity_produce-results/). 
 
