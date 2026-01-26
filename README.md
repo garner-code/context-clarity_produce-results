@@ -7,9 +7,9 @@ This repo is designed to allow computational reproducibility of the results repo
 
 The code used to run the analysis and produce the figures can be followed [here](https://garner-code.github.io/context-clarity_produce-results/). 
 
-To run the analysis script locally, you'll need the raw data, which can be found here, and should be preprocessed using [this R script](https://github.com/lydiabarnes01/doors/blob/main/src/run_wrangling.R) and associated functions from [this release](https://github.com/lydiabarnes01/doors/releases/tag/preprint) of [this repository](https://github.com/lydiabarnes01/doors/tree/main).
+To run the analysis script locally, you'll need the raw data, which can be found [here](https://osf.io/4ehry/overview?view_only=2fba551e23794d78ad1bc4bca583add9), and should be preprocessed using [this R script](https://github.com/lydiabarnes01/doors/blob/main/src/run_wrangling.R) and associated functions from [this release](https://github.com/lydiabarnes01/doors/releases/tag/preprint) of [this repository](https://github.com/lydiabarnes01/doors/tree/main).
 
-If you want to skip the preprocessing and get the data in the format required to run the analysis, you can visit the [OSF here]LINK COMING SOON. If you want to run [the analysis script from this repo](https://github.com/garner-code/context-clarity_produce-results/blob/main/context_learn-trans_task-switch_produce-results.qmd), then you will need the following folder structure:  
+If you want to skip the preprocessing and get the data in the format required to run the analysis, you can visit the [OSF here](https://osf.io/4ehry/overview?view_only=2fba551e23794d78ad1bc4bca583add9). If you want to run [the analysis script from this repo](https://github.com/garner-code/context-clarity_produce-results/blob/main/context_learn-trans_task-switch_produce-results.qmd), then you will need the following folder structure:  
 
 top_folder/  
 │   ├── _quarto.yml  
