@@ -116,7 +116,45 @@ Now lets see the fig in all its glory -
 
 ![Fig 5: People in the frequent switch group broke up their routines to jump tasks](figs/task-jumps_4tlks.svg){fig-align="cent"}
 
-Now lets apply the ANOVA model to the data -
+Before we analyse the data, let's investigate better the skewness, before and after transformation. Here we can see that a sqrt transformation improves the skew. (although it does not completely solve it).
+
+```{r}
+
+
+jumps %>%
+  transmute(
+    Jumps = jumps,
+    Sqrt_Jumps = sqrt(jumps)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "Jumps"
+  ) %>%
+  ggplot(aes(sample = Jumps)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation) +
+  theme_bw()
+
+
+```
+
+Let's check the ratio of the largest and smallest conditions between the two circumstances:
+
+```{r}
+
+jumps <- jumps %>% mutate(sqrt_jumps = sqrt(jumps)) 
+
+jumps %>% group_by(train_type) %>% 
+  summarise(var_jumps = var(jumps), 
+         var_sqrt_jumps = var(sqrt_jumps)) %>%
+  summarise(across(c('var_jumps', 'var_sqrt_jumps'), ~ .[2] / .[1]))
+  
+  
+```
+
+The square root transformation is improving the variance ratios. Now lets apply the ANOVA model to the untransformed and the transformed data. Note that the estimate of general eta squared could be biased by any heterogeneity in variances, so we also calculate
 
 ```{r, results='hide', message=FALSE}
 
@@ -138,6 +176,12 @@ tj_aovs <- lapply(exp_strs, function(x)
          within = "switch",
          between = "train_type"))
 names(tj_aovs) <- exp_strs
+
+tj_aovs_sqrt <- lapply(exp_strs, function(x) 
+  aov_ez("sub", "sqrt_jumps", jumps %>% filter(exp == x), 
+         within = "switch",
+         between = "train_type"))
+names(tj_aovs_sqrt) <- exp_strs
 
 # convert the anovas to a dataframe, save the results and show as a table
 convert_aov_to_df <- function(aovl, exp_str){
@@ -163,6 +207,9 @@ tj_aov_dat$p <- round(tj_aov_dat$p, 3)
 tj_aov_dat$id <- paste(tj_aov_dat$exp, tj_aov_dat$effect, sep="_") 
 write.csv(tj_aov_dat, paste(res_path, 'task_jumps_aov.csv', sep=""), row.names=FALSE)
 
+# now print the anova from the transformed data, so we can check the effect remains the same.
+print(tj_aovs_sqrt)
+
 ```
 
 ```{r}
@@ -172,7 +219,30 @@ write.csv(tj_aov_dat, paste(res_path, 'task_jumps_aov.csv', sep=""), row.names=F
 kable(tj_aov_dat, digits=2)
 ```
 
-We can see from the above results that we have a significant group x switch interaction for both experiments. We need to follow this up with post-hoc contrasts.
+Now, lets plot the residuals against predicted values from our transformed model to check what we think of them.
+
+```{r}
+
+get_resid_plot <- function(mod){
+  p <- ggplot(
+    data.frame(
+      fitted = c(fitted(mod$lm)),
+      resid = c(residuals(mod$lm))
+    ),
+    aes(fitted, resid)
+  ) +
+    geom_point() +
+    geom_hline(yintercept = 0, linetype = 2)
+  return(p)
+}
+
+lapply(tj_aovs_sqrt, get_resid_plot)
+
+```
+
+The residuals plot is not perfect, but I think we are within the realm of tolerability.
+
+RE: the results from the ANOVA, we can see from the above results that we have a significant group x switch interaction for both experiments. We need to follow this up with post-hoc contrasts.
 
 First, lets define the contrasts that we will apply to task jumps and general errors across both experiments -
 
@@ -290,6 +360,40 @@ plot(multi)
 dev.off()
 ```
 
+Before doing the ANOVA, we want to check the data before and after a transformation of the data.
+
+```{r}
+errors %>%
+  transmute(
+    Errors = errors,
+    Sqrt_Errors = sqrt(errors)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "Errors"
+  ) %>%
+  ggplot(aes(sample = Errors)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation) +
+  theme_bw()
+
+```
+
+Let's also check the ratio of the largest and smallest conditions between the two circumstances, which are in line with the jump data above.
+
+```{r}
+
+errors %>% mutate(sqrt_errors = sqrt(errors)) %>%
+  group_by(train_type) %>% 
+  summarise(var_errs = var(errors), 
+            var_sqrt_errs = var(sqrt_errors)) %>%
+  summarise(across(c('var_errs', 'var_sqrt_errs'), ~ .[2] / .[1]))
+  
+
+```
+
 ```{r, results='hide', message=FALSE}
 
 # first set the factors to be factors
@@ -307,6 +411,14 @@ er_aovs <- lapply(exp_strs, function(x)
          between = "train_type"))
 names(er_aovs) <- exp_strs
 
+# do the same with the square root transformation
+er_aovs_sqrt <- lapply(exp_strs, function(x) 
+  aov_ez("sub", "errors", errors %>% filter(exp == x), 
+         within = "switch",
+         between = "train_type",
+         transformation = "sqrt"))
+names(er_aovs_sqrt) <- exp_strs
+
 er_aov_dat <- do.call(rbind, 
                       lapply(1:length(exp_strs),
                              function(x) convert_aov_to_df(er_aovs[[x]],
@@ -317,6 +429,11 @@ er_aov_dat[,cols2round] <- apply(er_aov_dat[,cols2round], 2, round, 2)
 er_aov_dat$id <- paste(er_aov_dat$exp, er_aov_dat$effect, sep="_")
 
 write.csv(er_aov_dat, paste(res_path, 'gen-errs_aov.csv', sep=""), row.names=FALSE)
+
+# print the sqrt aovs here. The one difference is that the main effect of group is significant here for the lt experiment, but not when we use the untransformed data
+print(er_aovs_sqrt)
+
+
 ```
 
 ```{r}
@@ -429,7 +546,39 @@ plt_tran_bp_4paper_andtlks(k4_by_grp_fname,
 
 ![Fig: Effect of Group and Condition on Knowledge Onset](figs/k4_by_grp_4tlks.svg){fig-align="cent"}
 
-Now I have the data in order I am ready to perform the analysis on the onset data as defined for task jumps above, but this time on learning transfer performance.
+Now I have the data in order I am ready to perform the analysis on the onset data as defined for task jumps above, but this time on learning transfer performance. First, let's check the distribution of the data.
+
+```{r}
+
+onset_dat %>%
+  transmute(
+    k4_onset = k4_onset,
+    log_k4_onset = log(k4_onset)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "k4_onset"
+  ) %>%
+  ggplot(aes(sample = k4_onset)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation, scales="free") +
+  theme_bw()
+
+```
+
+Let's also get the variance between groups:
+
+```{r}
+
+onset_dat %>% mutate(log_k4 = log(k4_onset)) %>%
+  group_by(train_type) %>% 
+  summarise(var_k4 = var(k4_onset), 
+            var_log_k4 = var(log_k4)) %>%
+  summarise(across(c('var_k4', 'var_log_k4'), ~ .[2] / .[1]))
+
+```
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -444,6 +593,12 @@ onset_aov <-
          within = "transfer",
          between = "train_type")
 
+onset_aov_lg <- 
+  aov_ez("sub", "k4_onset", onset_dat, 
+         within = "transfer",
+         between = "train_type",
+         transformation = 'log')
+
 lt_onset_aov_dat <- convert_aov_to_df(onset_aov, "onset")
 # do some manual rounding of columns
 lt_onset_aov_dat$Fstat <- round(lt_onset_aov_dat$Fstat, 2)
@@ -452,6 +607,9 @@ lt_onset_aov_dat$p <- round(lt_onset_aov_dat$p, 3)
 
 # now save
 write.csv(lt_onset_aov_dat, paste(res_path, 'lt_onset_aov.csv', sep=""), row.names=FALSE)
+
+# for comparison to the untransformed results
+print(onset_aov_lg)
 
 ```
 
@@ -566,6 +724,40 @@ plt_tran_bp_4paper_andtlks(lt_acc_by_grp_fname,
 
 ![Fig: Effect of Group and Condition on Accuracy](figs/lt_acc_by_grp_4tlks.svg){fig-align="cent"}
 
+Now I can plot the accuracy data before and after transformation.
+
+```{r}
+
+
+lt_acc %>%
+  transmute(
+    acc = accuracy,
+    sqrt_acc = sqrt(acc)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "acc"
+  ) %>%
+  ggplot(aes(sample = acc)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation) +
+  theme_bw()
+
+```
+
+Now let's summarise the variability between groups. As we can see, variability is very similar between the groups
+
+```{r}
+
+lt_acc %>% mutate(sqrt_acc = sqrt(accuracy)) %>%
+  group_by(train_type) %>% 
+  summarise(var_acc = var(accuracy), 
+            var_sqrt_acc = var(sqrt_acc)) %>%
+  summarise(across(c('var_acc', 'var_sqrt_acc'), ~ .[2] / .[1]))
+```
+
 ```{r, message=FALSE}
 
 # first set the factors to be factors
@@ -579,6 +771,13 @@ lt_acc_aov <-
          within = "transfer",
          between = "train_type")
 
+# now with the sqrt transformation applied
+lt_acc_aov_sqrt <- 
+  aov_ez("sub", "accuracy", lt_acc, 
+         within = "transfer",
+         between = "train_type", 
+         transformation = "sqrt")
+
 lt_acc_aov_dat <- convert_aov_to_df(lt_acc_aov, "lt_acc")
 # do some manual rounding of columns
 lt_acc_aov_dat$Fstat <- round(lt_acc_aov_dat$Fstat, 2)
@@ -587,6 +786,9 @@ lt_acc_aov_dat$p <- round(lt_acc_aov_dat$p, 3)
 
 # now save
 write.csv(lt_acc_aov_dat, paste(res_path, 'lt_acc_aov.csv', sep=""), row.names=FALSE)
+
+# print the transformed outcome to compare with the untransormed below. Note the outcomes are the same to if we do not transform the data.
+print(lt_acc_aov_sqrt)
 
 ```
 
@@ -704,7 +906,41 @@ plt_tran_bp_4paper_andtlks(lt_se_by_grp_fname,
 
 ![Fig: Effect of Group and Condition on Setting Errors](figs/lt_se_by_grp_4tlks.svg){fig-align="cent"}
 
-Now we have a plot, we can analyse the data
+Now we have a plot, we can analyse the data.
+
+First, let's look at the setting error data before and after transformation
+
+```{r}
+
+
+lt_set_err_dat %>%
+  transmute(
+    se = set_err,
+    log_se = log(set_err+.01)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "SetErr"
+  ) %>%
+  ggplot(aes(sample = SetErr)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation, scales="free") +
+  theme_bw()
+
+```
+
+Now let's check the variance difference between groups. Again, there is not. So I will not repeat the analysis on transformed data.
+
+```{r}
+
+lt_set_err_dat %>% mutate(log_se = log(set_err+.01)) %>%
+  group_by(train_type) %>% 
+  summarise(var_ser = var(set_err), 
+            var_log_ser = var(set_err)) %>%
+  summarise(across(c('var_ser', 'var_log_ser'), ~ .[2] / .[1]))
+```
 
 ```{r, message=FALSE}
 # first set the factors to be factors
@@ -719,6 +955,7 @@ lt_set_err_aov <-
          within = "transfer",
          between = "train_type")
 
+
 lt_set_err_aov_dat <- convert_aov_to_df(lt_set_err_aov, "lt_se")
 # do some manual rounding of columns
 lt_set_err_aov_dat$Fstat <- round(lt_set_err_aov_dat$Fstat, 2)
@@ -727,6 +964,7 @@ lt_set_err_aov_dat$p <- round(lt_set_err_aov_dat$p, 3)
 
 # now save
 write.csv(lt_set_err_aov_dat, paste(res_path, 'lt_se_aov.csv', sep=""), row.names=FALSE)
+
 ```
 
 ```{r}
@@ -791,7 +1029,37 @@ plt_tran_bp_4paper_andtlks(lt_ge_by_grp_fname,
 
 ![Fig: Effect of Group and Condition on Knowledge Onset](figs/lt_ge_by_grp_4tlks.svg){fig-align="cent"}
 
-Now I have this, I can analyse the general errors...
+Now I have this, I can analyse the general errors. First, lets plot the quantiles (with and without transformation) against that of a normal distribution. We can see that the non-normality is driven by a bunch of the zero scores, which a transformation won't help with, so I will not repeat the analysis on a transformed variable in this case.
+
+```{r}
+
+lt_gen_err_dat %>%
+  transmute(
+    ge = gen_err,
+    sqrt_ge = sqrt(gen_err)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "SetErr"
+  ) %>%
+  ggplot(aes(sample = SetErr)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation, scales="free") +
+  theme_bw()
+```
+
+We can now check the variance difference between groups. Again, very close, so not an issue with inequality of variances. Thus, I will not repeat the analysis on a transformed version of the data.
+
+```{r}
+
+lt_gen_err_dat %>% mutate(sqrt_ge = sqrt(gen_err)) %>%
+  group_by(train_type) %>% 
+  summarise(var_ge = var(gen_err), 
+            var_sqrt_ge = var(sqrt_ge)) %>%
+  summarise(across(c('var_ge', 'var_sqrt_ge'), ~ .[2] / .[1]))
+```
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -861,6 +1129,56 @@ pdf(paste(fig_path, 'lt_results.pdf', sep=''), width=plt_wdth,
     height=plt_hgt)
 plot(multi)
 dev.off()
+```
+
+It was suggested by a reviewer that we combine setting errors with general errors to better control for carelessness, so I test that analysis here.
+
+```{r}
+
+all_err_dat <- inner_join(lt_set_err_dat, lt_gen_err_dat,
+                          by=c('sub', 'train_type', 'transfer')) %>%
+  mutate(se_prop = set_err/(set_err+gen_err))
+```
+
+Let's look at the distribution of data and the variance difference between groups
+
+```{r}
+
+all_err_dat %>% 
+  transmute(
+    se_prop = se_prop,
+    sqrt_se_prop = sqrt(se_prop)
+  ) %>%
+  pivot_longer(
+    everything(),
+    names_to = "Transformation",
+    values_to = "SE_prop"
+  ) %>%
+  ggplot(aes(sample = SE_prop)) +
+  stat_qq() +
+  stat_qq_line(colour = "grey", linewidth = 1) +
+  facet_wrap(~ Transformation, scales="free") +
+  theme_bw()
+```
+
+Now lets check the variance difference between the two groups. In this case the transformation makes things worse, so let's only analyse using the untransformed data
+
+```{r}
+
+all_err_dat %>% mutate(sqrt_se_prop = sqrt(se_prop)) %>%
+  group_by(train_type) %>% 
+  summarise(var_se_prop = var(se_prop, na.rm=T), 
+            var_sqrt_se_prop = var(sqrt_se_prop, na.rm=T)) %>%
+  summarise(across(c('var_se_prop', 'var_sqrt_se_prop'), ~ .[2] / .[1]))
+```
+
+```{r}
+
+lt_se_prop_aov <- 
+  aov_ez("sub", "se_prop", all_err_dat, 
+         within = "transfer",
+         between = "train_type")
+# there are no significant main effects and the train x transfer type is significant. I want to think on this and determine if it's useful or not. 
 ```
 
 ## Experiment Two
