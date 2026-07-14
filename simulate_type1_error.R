@@ -34,20 +34,20 @@ sim_dat <- function(dat, exp_str, dv){
 }
 
 # 2. function to calculate and return the F statistic for each permutation
-run_F_stat <- function(dat, dv, data_transform = 'none'){
+run_F_stat <- function(dat, dv, data_transform = 'none', withinf, betweenf){
   # run the ANOVA and return the F statistic
   if (data_transform == 'none'){
     aov_res <- aov_ez(id = 'sub', 
                       dv = dv, 
                       data = dat, 
-                      between = 'train_type',
-                      within = 'switch')
+                      between = betweenf,
+                      within = withinf)
   } else {
     aov_res <- aov_ez(id = 'sub', 
                       dv = dv, 
                       data = dat, 
-                      between = 'train_type',
-                      within = 'switch',
+                      between = betweenf,
+                      within = withinf,
                       transformation = data_transform)
   }
   out <- tibble(F_stat = aov_res$anova_table$F,
@@ -57,27 +57,38 @@ run_F_stat <- function(dat, dv, data_transform = 'none'){
 }
 
 # 3. now put them together into one wrapper function
-one_sim <- function(dat, exp_str, dv, data_transform = 'none'){
+one_sim <- function(dat, exp_str, dv, data_transform = 'none', withinf='switch', betweenf='train_type'){
   sim_df <- sim_dat(dat, exp_str = exp_str, dv = dv)
-  F_stats <- run_F_stat(sim_df, dv = dv, data_transform = data_transform)
+  F_stats <- run_F_stat(sim_df, dv = dv, data_transform = data_transform, withinf = withinf, betweenf = betweenf)
   return(F_stats)
 }
 
 #############################################################
 # read in the data
-dat <- read_csv(paste0(data_path, 'jumps.csv'))
+# first let's do the most negatively skewed disttribution, 
+# which is accuracy from the learning transfer phase (-2.15)
+lt_acc <- read.csv(paste(data_path, 'exp_lt_avg.csv', sep='')) %>% 
+  filter(ses==3) %>%
+  select(sub, transfer, full_transfer_first, train_type, accuracy) %>% 
+  mutate(train_type=recode(train_type, `1` = 'stable', `2` = 'variable'),
+         transfer=recode(transfer, `1` = 'identity', `2` = 'mixed'))
+lt_acc$sub <- as.factor(lt_acc$sub)
+lt_acc$train_type <- as.factor(lt_acc$train_type)
+levels(lt_acc$train_type) <- c('stable','variable')
+lt_acc$transfer <- as.factor(lt_acc$transfer)
+lt_acc$exp <- 'lt'
 sim_res <- do.call(rbind, 
-                   replicate(nreps, one_sim(dat, exp_str = 'lt', dv = 'jumps', data_transform = 'none'), simplify=FALSE))
+                   replicate(nreps, one_sim(lt_acc, exp_str = 'lt', dv = 'accuracy', data_transform = 'sqrt', withinf='transfer', betweenf='train_type'), simplify=FALSE))
 
 # save the output of the simulation results
-write_csv(sim_res, paste0(data_path, 'type1sim_res.csv'))
+write_csv(sim_res, paste0(data_path, 'type1sim_res_acc.csv'))
 
 # report the % of p-values < 0.05 for each effect
 type1 <- sim_res %>% group_by(fx) %>%
-            summarise(type1_error = mean(p_val < 0.05)) %>%
-            mutate(type1_error = round(type1_error, 2))
+  summarise(type1_error = mean(p_val < 0.05)) %>%
+  mutate(type1_error = round(type1_error, 2))
 
-write_csv(type1, paste0(res_path, 'type1_error.csv'))
+write_csv(type1, paste0(res_path, 'type1_error_acc.csv'))
 
 # plot a histogram of p-values for each effect, with a vertical line on
 # each plot where p=0.05 is
@@ -91,5 +102,28 @@ sim_res %>% ggplot(aes(x = p_val)) +
         axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 12),
         plot.title = element_text(size = 14, face = "bold"))
-ggsave(paste0(fig_path, 'type1sim_hist.pdf'), width = j_wdth, height = j_hgt, units = 'in', dpi = 300)
+ggsave(paste0(fig_path, 'type1sim_hist_acc.pdf'), width = j_wdth, height = j_hgt, units = 'in', dpi = 300)
+
+#############################################################################
+# now we do the most +ve skewed distribution, which was general errors from the task switching phase
+ts <- read.csv(paste(res_path, 'ts_test_dat.csv', sep=""))
+ts$exp <- 'ts'
+sim_res <- do.call(rbind, 
+                   replicate(nreps, one_sim(ts, exp_str = 'ts', 
+                                            dv = 'general_errors', 
+                                            data_transform = 'none', 
+                                            withinf='switch', 
+                                            betweenf='train_type'), simplify=FALSE))
+
+# save the output of the simulation results
+write_csv(sim_res, paste0(data_path, 'type1sim_res_gen.csv'))
+
+# report the % of p-values < 0.05 for each effect
+type1 <- sim_res %>% group_by(fx) %>%
+  summarise(type1_error = mean(p_val < 0.05)) %>%
+  mutate(type1_error = round(type1_error, 2))
+
+write_csv(type1, paste0(res_path, 'type1_error_gen.csv'))
+#############################################################################
+
 

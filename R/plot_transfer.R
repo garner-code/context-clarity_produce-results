@@ -5,20 +5,22 @@ plt_tran_bp_4paper_andtlks <- function(plt_sv_nm,
                                        col_scheme,
                                        ylabel,
                                        ylim,
-                                       fig_lab){
+                                       fig_lab,
+                                       figfont,
+                                       leg_on=FALSE){
   
  
   pdf(paste(plt_sv_nm, '.pdf', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=3/4)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4, leg_on)
   fig_label(fig_lab)
   dev.off()
   
   svg(paste(plt_sv_nm, '.svg', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=3/4)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4, leg_on)
   fig_label(fig_lab)
   dev.off()
   
@@ -27,26 +29,31 @@ plt_tran_bp_4paper_andtlks <- function(plt_sv_nm,
   tlk_scl = 2
   pdf(paste(plt_sv_nm, '_4tlks.pdf', sep=''), # for talks
       width = p_wdth/2.54*tlk_scl, height = p_hgt/2.54*tlk_scl)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1.5)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=1.5)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5, leg_on)
   fig_label(fig_lab)
   dev.off()
   
   svg(paste(plt_sv_nm, '_4tlks.svg', sep=''), # for talks
       width = p_wdth/2.54*tlk_scl, height = p_hgt/2.54*tlk_scl)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1.5)
-  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=1.5)
+  tran_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5, leg_on)
   fig_label(fig_lab)
   dev.off()
 }
 
-tran_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex){
+tran_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex, leg_on){
   
-  with(dat, 
+  dat$train_type <- factor(dat$train_type)
+  dat$transfer <- factor(dat$transfer)
+  plot_data <- dat
+  
+  with(plot_data, 
        boxplot(as.formula(this_form),
                frame=F,
                at=c(1:2, 3.5:4.5),
                col=col_scheme,
+               outline=FALSE,
                ylab=ylabel,
                ylim=ylim,
                yaxt='n',
@@ -55,8 +62,44 @@ tran_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex){
                notch=FALSE))
   axis(1, at=c(1.5, 4), labels=c('Stable','Variable'), las=1)
   axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
+  
+  for(tt in levels(dat$train_type)) {
+    tmp <- plot_data %>%
+      filter(train_type == tt)
+    xpos <- if(tt == "stable") {c(identity = 1, mixed = 2)
+    } else {c(identity = 3.5, mixed = 4.5)}
+    
+    tmp_wide <- tmp %>%
+      tidyr::pivot_wider(
+        id_cols = sub,
+        names_from = transfer,
+        values_from = all.vars(as.formula(this_form))[1]
+      )
+    
+    segments(
+      x0 = xpos["identity"],
+      y0 = tmp_wide$identity,
+      x1 = xpos["mixed"],
+      y1 = tmp_wide$mixed,
+      col = adjustcolor("grey70", alpha.f = 0.3)
+    )
+    
+    points(rep(xpos["identity"], nrow(tmp_wide)),
+           tmp_wide$identity,
+           pch = 16,
+           cex = 0.6,
+           col = adjustcolor("grey70", alpha.f = 0.5))
+    
+    points(rep(xpos["mixed"], nrow(tmp_wide)),
+           tmp_wide$mixed,
+           pch = 16,
+           cex = 0.6,
+           col = adjustcolor("grey70", alpha.f = 0.5))
+    
+  }
+  
   mtext('Group', side=1, line=2, las=1, cex=xlab_cex)
-  legend(2, 0.8, c('Identity','Mixed'), fill=col_scheme, bty='n')
+  if (leg_on) legend(2, 0.75, c('Identity','Mixed'), fill=col_scheme, bty='n')
 }
 
 plt_bias_by_grp_4paper_andtlks <- function(plt_sv_nm,

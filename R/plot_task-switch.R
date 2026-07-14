@@ -6,19 +6,20 @@ plt_ts_bp_4paper_andtlks <- function(plt_sv_nm,
                                        ylabel,
                                        ylim,
                                        fig_lab,
-                                       leg_on){
+                                       leg_on,
+                                       figfont){
   
   
   pdf(paste(plt_sv_nm, '.pdf', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=3/4)
   ts_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4, leg_on)
   fig_label(fig_lab)
   dev.off()
   
   svg(paste(plt_sv_nm, '.svg', sep=''), 
       width = p_wdth/2.54, height = p_hgt/2.54)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=3/4)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=3/4)
   ts_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=3/4, leg_on)
   fig_label(fig_lab)
   dev.off()
@@ -28,14 +29,14 @@ plt_ts_bp_4paper_andtlks <- function(plt_sv_nm,
   tlk_scl = 2
   pdf(paste(plt_sv_nm, '_4tlks.pdf', sep=''), # for talks
       width = p_wdth/2.54*tlk_scl, height = p_hgt/2.54*tlk_scl)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1.5)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=1.5)
   ts_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5, leg_on)
   fig_label(fig_lab)
   dev.off()
   
   svg(paste(plt_sv_nm, '_4tlks.svg', sep=''), # for talks
       width = p_wdth/2.54*tlk_scl, height = p_hgt/2.54*tlk_scl)
-  par(family="Source Sans Pro", mar=c(4,4,2,1), las=2, cex=1.5)
+  par(family=figfont, mar=c(4,4,2,1), las=2, cex=1.5)
   ts_grp_bp(dat, this_form, col_scheme, ylabel, ylim, xlab_cex=1.5, leg_on)
   fig_label(fig_lab)
   dev.off()
@@ -48,6 +49,7 @@ ts_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex, leg_on
                frame=F,
                at=c(1:2, 3.5:4.5),
                col=col_scheme,
+               outline=FALSE,
                ylab=ylabel,
                ylim=ylim,
                yaxt='n',
@@ -56,6 +58,45 @@ ts_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex, leg_on
                notch=FALSE))
   axis(1, at=c(1.5, 4), labels=c('Stable', 'Variable'), las=1)
   axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
+  
+  
+  for(tt in levels(plot_data$train_type)) {
+    
+    tmp <- dat %>%
+      filter(train_type == tt)
+    
+    xpos <- if(tt == "stable") {c(stay = 1, switch = 2)
+    } else {c(stay = 3.5, switch = 4.5)}
+    
+    tmp_wide <- tmp %>%
+      tidyr::pivot_wider(
+        id_cols = sub,
+        names_from = switch,
+        values_from = all.vars(as.formula(this_form))[1]
+      )
+    
+    segments(
+      x0 = xpos["stay"],
+      y0 = tmp_wide$stay,
+      x1 = xpos["switch"],
+      y1 = tmp_wide$switch,
+      col = adjustcolor("grey70", alpha.f = 0.3)
+    )
+    
+    
+    points(rep(xpos["stay"], nrow(tmp_wide)),
+           tmp_wide$stay,
+           pch = 16,
+           cex = 0.6,
+           col = adjustcolor("grey70", alpha.f = 0.5))
+    
+    points(rep(xpos["switch"], nrow(tmp_wide)),
+           tmp_wide$switch,
+           pch = 16,
+           cex = 0.6,
+           col = adjustcolor("grey70", alpha.f = 0.5))
+  }
+  
   mtext('Group', side=1, line=2, las=1, cex=xlab_cex)
-  if (leg_on) legend(2, 0.8, c('Stay','Switch'), fill=col_scheme, bty='n')
+  if (leg_on) legend(1, 0.8, c('Stay','Switch'), fill=col_scheme, bty='n')
 }

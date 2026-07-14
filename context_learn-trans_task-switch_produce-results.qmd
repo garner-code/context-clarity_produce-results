@@ -102,13 +102,14 @@ gen_jumps_plot(jumps, 'jumps~switch*train_type',
                exp_strs,
                col_scheme,
                j_wdth, j_hgt,
-               paste(fig_path, 'task-jumps', sep=''),
+               paste(fig_path, 'task-jumps_RR1', sep=''),
                fig_labs = c('A', 'B'),
                ylabel = 'Jumps',
                xlabel = 'Group',
-               ylims=c(0,5),
+               ylims=c(0,6),
                title = TRUE,
-               title_strs = c('Exp 1', 'Exp 2'))
+               title_strs = c('Exp 1', 'Exp 2'),
+               figfont=figfont)
 
 ```
 
@@ -270,13 +271,14 @@ gen_jumps_plot(errors,
                exp_strs,
                col_scheme,
                j_wdth, j_hgt,
-               paste(fig_path, 'general-errors', sep=''),
+               paste(fig_path, 'general-errors_RR1', sep=''),
                fig_labs = c('C', 'D'),
                ylabel = 'Errors',
                ylims=c(0,1),
                xlabel = 'Group',
                title = FALSE,
-               title_strs = c(NA, NA))
+               title_strs = c(NA, NA),
+               figfont=figfont)
 
 ```
 
@@ -297,7 +299,7 @@ multi <- c(ims[[1]]) %>%
          image_append(stack=TRUE)
 plt_hgt = j_hgt*2 # get the height of the traj plot
 plt_wdth = j_wdth
-pdf(paste(fig_path, 'jumps-and-errors.pdf', sep=''), width=plt_wdth,
+pdf(paste(fig_path, 'jumps-and-errors_RR1.pdf', sep=''), width=plt_wdth,
     height=plt_hgt)
 plot(multi)
 dev.off()
@@ -397,7 +399,7 @@ First steps are to wrangle the routine and group x transfer task data, and looki
 onset_dat <- read.csv(paste(data_path, 'exp_lt_maggi-k4.csv', sep='')) %>% 
   select(sid, ses, transfer, k4_onset) %>% 
   filter(ses == 3) %>%
-  mutate(transfer=recode(transfer, `1` = 'comp', `2` = 'part')) 
+  mutate(transfer=recode(transfer, `1` = 'identity', `2` = 'mixed')) 
 names(onset_dat)[names(onset_dat) == "sid"] = "sub"
 
 # now I get the group info
@@ -450,8 +452,9 @@ plt_tran_bp_4paper_andtlks(k4_by_grp_fname,
                 'k4_onset ~ transfer*train_type', 
                 col_scheme,
                 'Onset',
-                c(0, 200),
-                fig_lab = 'A')
+                c(0, 260),
+                fig_lab = 'A',
+                figfont=figfont)
 ```
 
 ![Fig: Effect of Group and Condition on Knowledge Onset](figs/k4_by_grp_4tlks.svg){fig-align="cent"}
@@ -596,8 +599,9 @@ plt_tran_bp_4paper_andtlks(lt_acc_by_grp_fname,
                 'accuracy ~ transfer*train_type', 
                 col_scheme,
                 'Accuracy',
-                c(0.6, 1),
-                fig_lab = 'B')
+                c(0.5, 1),
+                fig_lab = 'B',
+                figfont=figfont)
 ```
 
 ![Fig: Effect of Group and Condition on Accuracy](figs/lt_acc_by_grp_4tlks.svg){fig-align="cent"}
@@ -728,6 +732,14 @@ lt_set_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err))
                     group_by(sub, train_type, transfer) %>%
                     summarise(set_err = mean(door_oc)) %>%
                     ungroup()
+lt_set_err_dat <- lt_set_err_dat %>% 
+  mutate(train_type = recode(train_type, 
+                             `1` = 'stable', 
+                             `2` = 'variable'),
+         transfer = recode(transfer,
+                           `1` = 'identity',
+                           `2` = 'mixed')
+         )
 ```
 
 Now I have the setting errors, I can plot them -
@@ -744,8 +756,9 @@ plt_tran_bp_4paper_andtlks(lt_se_by_grp_fname,
                 'set_err ~ transfer*train_type', 
                 col_scheme,
                 'Setting Errors',
-                c(0, 0.8),
-                fig_lab = 'C')
+                c(0, 0.6),
+                fig_lab = 'C',
+                figfont = figfont)
 ```
 
 ![Fig: Effect of Group and Condition on Setting Errors](figs/lt_se_by_grp_4tlks.svg){fig-align="cent"}
@@ -826,6 +839,14 @@ lt_gen_err_dat <- do.call(rbind, lapply(subs, get_other_doors, set_err=set_err))
                     summarise(gen_err = mean(door_nc)) %>%
                     ungroup()
   
+lt_gen_err_dat <- lt_gen_err_dat %>% 
+  mutate(train_type = recode(train_type, 
+                             `1` = 'stable', 
+                             `2` = 'variable'),
+         transfer = recode(transfer,
+                           `1` = 'identity',
+                           `2` = 'mixed')
+  )
 ```
 
 Lets plot these general errors -
@@ -843,7 +864,9 @@ plt_tran_bp_4paper_andtlks(lt_ge_by_grp_fname,
                 col_scheme,
                 'General Errors',
                 c(0, 0.8),
-                fig_lab = 'D')
+                fig_lab = 'D',
+                figfont=figfont,
+                leg_on=TRUE)
 
 ```
 
@@ -914,22 +937,11 @@ multi <- c(top, bottom) %>% image_append(stack=TRUE)
        
 plt_hgt = j_hgt*2 # get the height of the traj plot
 plt_wdth = j_wdth
-pdf(paste(fig_path, 'lt_results.pdf', sep=''), width=plt_wdth,
+pdf(paste(fig_path, 'lt_results_RR1.pdf', sep=''), width=plt_wdth,
     height=plt_hgt)
 plot(multi)
 dev.off()
 ```
-
-It was suggested by a reviewer that we combine setting errors with general errors to better control for carelessness, so I test that analysis here.
-
-```{r}
-
-all_err_dat <- inner_join(lt_set_err_dat, lt_gen_err_dat,
-                          by=c('sub', 'train_type', 'transfer')) %>%
-  mutate(se_prop = set_err/(set_err+gen_err))
-```
-
-Let's look at the distribution of data and the variance difference between groups
 
 ## Experiment Two
 
@@ -1024,7 +1036,7 @@ write.csv(ge_emm_sw_ts, paste(res_path, 'ge_emms_int_ts.csv', sep=""), row.names
 kable(ge_emm_sw_ts, digits=2)
 ```
 
-### The impact of training on task switchin
+### The impact of training on task switching
 
 #### RT
 
@@ -1046,7 +1058,10 @@ ts_test_dat <- read.csv(paste(data_path, 'exp_ts_avg.csv', sep='')) %>%
             general_errors = mean(general_errors)) %>%
   ungroup() %>%
   mutate(train_type=recode(train_type, `1` = 'stable', `2` = 'variable'),
-         switch=recode(switch, `0` = 'stay', `1` = 'switch'))
+         switch=recode(switch, `0` = 'stay', `1` = 'switch')) %>%
+  mutate(train_type=factor(train_type),
+         switch=factor(switch),
+         sub=factor(sub))
 
 write.csv(ts_test_dat, paste(res_path, 'ts_test_dat.csv', sep=""), row.names=FALSE)
 ```
@@ -1065,9 +1080,10 @@ plt_ts_bp_4paper_andtlks(rt_ts_by_grp_fname,
                 'rt_correct ~ switch*train_type', 
                 col_scheme,
                 'RT',
-                c(0, 2),
+                c(0.2, 2),
                 fig_lab = 'A',
-                leg_on = FALSE)
+                leg_on = FALSE,
+                figfont)
 ```
 
 ![Fig: Effect of Group and Condition on RT](figs/ts_rt_by_grp_4tlks.svg){fig-align="cent"}
@@ -1075,12 +1091,6 @@ plt_ts_bp_4paper_andtlks(rt_ts_by_grp_fname,
 Now we have visualized, we can test for group differences -
 
 ```{r, message=FALSE, warning=FALSE}
-
-# first set the factors to be factors
-ts_test_dat$sub <- as.factor(ts_test_dat$sub)
-ts_test_dat$train_type <- as.factor(ts_test_dat$train_type)
-levels(ts_test_dat$train_type) <- c('stable','variable')
-ts_test_dat$switch <- as.factor(ts_test_dat$switch)
 
 ts_rt_aov <- 
   aov_ez("sub", "rt_correct", ts_test_dat, 
@@ -1150,7 +1160,8 @@ plt_ts_bp_4paper_andtlks(ts_acc_by_grp_fname,
                 'Accuracy',
                 c(0, 1),
                 fig_lab = 'B',
-                leg_on = FALSE)
+                leg_on = FALSE,
+                figfont=figfont)
 
 ```
 
@@ -1221,7 +1232,8 @@ plt_ts_bp_4paper_andtlks(ts_stick_by_grp_fname,
                 'Sticks',
                 c(0, 0.8),
                 fig_lab = 'C',
-                leg_on=TRUE)
+                leg_on=TRUE,
+                figfont=figfont)
 
 ```
 
@@ -1292,7 +1304,8 @@ plt_ts_bp_4paper_andtlks(ts_slip_by_grp_fname,
                 'Slips',
                 c(0, 1),
                 fig_lab = 'D',
-                leg_on=TRUE)
+                leg_on=TRUE,
+                figfont=figfont)
 
 ```
 
@@ -1368,7 +1381,8 @@ plt_ts_bp_4paper_andtlks(ts_se_by_grp_fname,
                 'Setting Errors',
                 c(0, 0.8),
                 fig_lab = 'C',
-                leg_on = FALSE)
+                leg_on = FALSE,
+                figfont=figfont)
 
 ```
 
@@ -1446,7 +1460,8 @@ plt_ts_bp_4paper_andtlks(ts_ge_by_grp_fname,
                 'General Errors',
                 c(0, 0.8),
                 fig_lab = 'D',
-                leg_on = TRUE)
+                leg_on = TRUE,
+                figfont=figfont)
 
 ```
 
@@ -1531,7 +1546,7 @@ multi <- c(top, bottom) %>% image_append(stack=TRUE)
        
 plt_hgt = j_hgt*2 # get the height of the traj plot
 plt_wdth = j_wdth
-pdf(paste(fig_path, 'ts_results.pdf', sep=''), width=plt_wdth,
+pdf(paste(fig_path, 'ts_results_RR1.pdf', sep=''), width=plt_wdth,
     height=plt_hgt)
 plot(multi)
 dev.off()
@@ -1541,45 +1556,45 @@ dev.off()
 
 We had a strict accuracy criteria for letting people into the experiment beyond the task acquistion phase, but for peace of mind, let's make sure the groups were comparable in accuracy in the second task acquisition block where they had to score \> 80% to pass.
 
-```{r}
-# first combine the data across 
+```{r warning = FALSE message = FALSE}
+# first, we need to load the evt level data, filter by the acquisition phase, and then extract the last 80 trials for each subject
 
-# U2H
+plot_acquisition_dat <- function(x){
+# first, get the data from the final phase of task acquisition (40 trials in each task)
+dat <- read.csv(paste0(data_path, 'exp_', x, '_evt.csv')) %>%
+  filter(ses == 1) %>%
+  group_by(sub) %>%
+  mutate(keep = ifelse(t > (max(t)-80), 1, 0)) %>%
+  ungroup() %>%
+  filter(keep == 1) %>%
+  group_by(sub, t, context) %>%
+  summarise(mu = mean(door_cc)) %>%
+  ungroup() %>%
+  group_by(sub, context) %>%
+  summarise(acc = mean(mu)) %>%
+  mutate(task = factor(context, levels=c(1,2), labels=c('Task A', 'Task B')))
 
-raw_data_dir <- '~/Documents/projects/doors-data'
-beh_fls <- fs::dir_ls(
-  paste(raw_data_dir, "study-01", sep="/"),
-  recurse=TRUE,
-  regexp = "sub-(0[1-9]|[1-9][0-9]|100)_ses-learn_house-9_task-mforage_beh\\.tsv$"
-)
+# now get train type
+tt <- read.csv(paste0(data_path, 'exp_', x, '_evt.csv')) %>%
+  filter(ses == 2) %>%
+  group_by(sub) %>%
+  select(sub, train_type) %>%
+  distinct() %>%
+  mutate(train_type = factor(train_type, levels=c(1,2), labels=c("stable", "variable")))
 
-trls_fls <- fs::dir_ls(
-  paste(raw_data_dir, "study-01", sep="/"),
-  recurse=TRUE,
-  regexp = "sub-(0[1-9]|[1-9][0-9]|100)_ses-learn_house-9_task-mforage_trls\\.tsv$"
-)
+dat <- inner_join(dat, tt, by=c('sub'))
+  
+# now plot the data 
+p <- dat %>% ggplot(aes(x=acc, fill=train_type)) +
+  geom_histogram(position='identity', alpha=0.5, binwidth=0.05, boundary=0.8) +
+  facet_wrap(~task, scales="free_y") +
+  xlim(0.5, 1) +
+  labs(title = paste0("Acquisition accuracy for exp ", x)) +
+  theme_classic()
+ggsave(filename=paste0(fig_path, 'task_acq_', x, '.pdf'), p, width = 4.5, height = 3.2, units = 'in', dpi = 300)
+return(p)
+}
 
-
-beh_df <- data.frame(path = beh_fls) %>%
-  mutate(
-    exp = str_extract(path, "(?<=exp-)[^/]+"),
-    sub = str_extract(path, "(?<=sub-)\\d{2,3}")
-  )
-
-
-trls_df <- data.frame(path = trls_fls) %>%
-  mutate(
-    exp = str_extract(path, "(?<=exp-)[^/]+"),
-    sub = str_extract(path, "(?<=sub-)\\d{2,3}")
-  )
-
-
-matched <- inner_join(
-  beh_df,
-  trls_df,
-  by = c("exp", "sub"),
-  suffix = c("_beh", "_trls")
-)
-
-
+ps <- lapply(c('lt', 'ts'), plot_acquisition_dat)
+ps
 ```

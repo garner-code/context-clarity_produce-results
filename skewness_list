@@ -1,0 +1,13 @@
+jumps = 1.68
+errors = 2.53
+onset = 1.99
+
+lt
+accuracy (lt) = -2.15**
+setting error = 1.95
+general error = 1.32
+
+ts
+set err (ts) = 2.09
+rt correct = 0.82
+general_error = 3.41**
