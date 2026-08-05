@@ -60,7 +60,7 @@ ts_grp_bp <- function(dat, this_form, col_scheme, ylabel, ylim, xlab_cex, leg_on
   axis(2, at=seq(min(ylim), max(ylim), by=max(ylim)/4), labels=paste(seq(min(ylim), max(ylim), by=max(ylim)/4)))
   
   
-  for(tt in levels(plot_data$train_type)) {
+  for(tt in levels(dat$train_type)) {
     
     tmp <- dat %>%
       filter(train_type == tt)

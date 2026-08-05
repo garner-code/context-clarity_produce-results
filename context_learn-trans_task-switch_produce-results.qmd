@@ -46,6 +46,7 @@ library(afex)
 library(pdftools)
 library(purrr)
 library(GGally)
+library(BayesFactor)
 
 data_path = 'data-wrangled/' # for all data derivs
 fig_path = 'figs/' # for figures
@@ -231,6 +232,8 @@ Now save the table of estimated marginal means for reporting
 tj_emm_int_lt <- summary(tj_emm_int_lt)
 tj_emm_int_lt$emmean <- round(tj_emm_int_lt$emmean,2)
 tj_emm_int_lt$SE <- round(tj_emm_int_lt$SE,2)
+tj_emm_int_lt$lower.CL <- round(tj_emm_int_lt$lower.CL,2)
+tj_emm_int_lt$upper.CL <- round(tj_emm_int_lt$upper.CL,2)
 tj_emm_int_lt$id <- paste(tj_emm_int_lt$train_type, tj_emm_int_lt$switch, sep="_")
 write.csv(tj_emm_int_lt, paste(res_path, 'task_jumps_emms_lt.csv', sep=""), row.names=FALSE)
 
@@ -362,7 +365,7 @@ We have a statistically significant main effect of switch. So let's get the EM m
 # get emms for the main effect
 ge_emm_sw_lt <- summary(emmeans(er_aovs[["lt"]], c("switch")))
 # round the key variables to 2 dp
-vars2round <- c("emmean", "SE")
+vars2round <- c("emmean", "SE", "lower.CL", "upper.CL")
 ge_emm_sw_lt[,vars2round] <- apply(ge_emm_sw_lt[,vars2round], 2, round, 2)
 # save
 write.csv(ge_emm_sw_lt, paste(res_path, 'ge_emms_mesw_lt.csv', sep=""), row.names=FALSE)
@@ -508,7 +511,7 @@ There are significant main effects of condition, so lets get the estimated margi
 # get emms for the main effect
 lt_onset_emm <- summary(emmeans(onset_aov, c("transfer")))
 
-cols2round <- c("emmean", "SE")
+cols2round <- c("emmean", "SE", "lower.CL", "upper.CL")
 lt_onset_emm[,cols2round] <- apply(lt_onset_emm[,cols2round], 2, round, 2)
 write.csv(lt_onset_emm, paste(res_path, 'lt_onset_emm_transfer.csv', sep=""), row.names=FALSE)
 ```
@@ -647,7 +650,7 @@ There is a significant main effect of condition, so lets get the estimated margi
 # get emms for the main effect
 lt_acc_emm <- summary(emmeans(lt_acc_aov, c("transfer")))
 
-cols2round <- c("emmean", "SE")
+cols2round <- c("emmean", "SE", "lower.CL", "upper.CL")
 lt_acc_emm[,cols2round] <- apply(lt_acc_emm[,cols2round], 2, round, 2)
 write.csv(lt_acc_emm, paste(res_path, 'lt_acc_emm_transfer.csv', sep=""), row.names=FALSE)
 ```
@@ -991,6 +994,8 @@ Now save the table of estimated marginal means for reporting
 tj_emm_int_ts <- summary(tj_emm_int_ts)
 tj_emm_int_ts$emmean <- round(tj_emm_int_ts$emmean,2)
 tj_emm_int_ts$SE <- round(tj_emm_int_ts$SE,2)
+tj_emm_int_ts$lower.CL <- round(tj_emm_int_ts$lower.CL, 2)
+tj_emm_int_ts$upper.CL <- round(tj_emm_int_ts$upper.CL, 2)
 tj_emm_int_ts$id <- paste(tj_emm_int_ts$train_type, tj_emm_int_ts$switch, sep="_")
 write.csv(tj_emm_int_ts, paste(res_path, 'task_jumps_emms_ts.csv', sep=""), row.names=FALSE)
 
@@ -1022,7 +1027,7 @@ In line with Experiment One, we see a main effect of switch. In contrast, we do 
 # get emms for the group and switch, to show it all at once
 ge_emm_sw_ts <- summary(emmeans(er_aovs[["ts"]], c("train_type","switch")))
 # round the key variables to 2 dp
-vars2round <- c("emmean", "SE")
+vars2round <- c("emmean", "SE", "lower.CL", "upper.CL")
 ge_emm_sw_ts[,vars2round] <- apply(ge_emm_sw_ts[,vars2round], 2, round, 2)
 ge_emm_sw_ts$id <- paste(ge_emm_sw_ts$train_type, ge_emm_sw_ts$switch, sep="_")
 # save
@@ -1552,11 +1557,81 @@ plot(multi)
 dev.off()
 ```
 
+And finally, let's perform a Bayesian t-test on the interaction terms for all the task switch DVs, just to be more sure that there is no group difference.
+
+```{r}
+
+diff_dat <- ts_test_dat %>%
+  pivot_wider(
+    id_cols = c(sub, train_type),
+    names_from = switch,
+    values_from = c(
+      accuracy,
+      setting_errors,
+      setting_sticks,
+      setting_slips,
+      general_errors,
+      rt_correct
+    )
+  ) %>%
+  mutate(
+    across(
+      ends_with("switch"),
+      ~ . - get(sub("_switch$", "_stay", cur_column())),
+      .names = "{sub('_switch$', '', .col)}_diff"
+    )
+  ) %>%
+select(sub, train_type, ends_with("diff"))
+
+library(dplyr)
+library(BayesFactor)
+library(purrr)
+
+diff_vars <- names(diff_dat) |>
+  grep("_diff$", x = _, value = TRUE)
+
+bf_results <- map_dfr(diff_vars, \(v) {
+  
+  bf <- ttestBF(
+    formula = as.formula(paste(v, "~ train_type")),
+    data = diff_dat
+  )
+  
+  tibble(
+    variable = v,
+    BF10 = extractBF(bf)$bf
+  )
+})
+
+bf_results
+
+
+```
+
+Now interpret the results:
+
+```{r}
+
+bf_results <- bf_results %>%
+  mutate(
+    evidence = case_when(
+      BF10 < 1/3 ~ "Moderate evidence for H0",
+      BF10 < 1 ~ "Anecdotal evidence for H0",
+      BF10 < 3 ~ "Anecdotal evidence for H1",
+      BF10 < 10 ~ "Moderate evidence for H1",
+      BF10 < 30 ~ "Strong evidence for H1",
+      TRUE ~ "Very strong evidence for H1"
+    )
+  )
+
+bf_results
+```
+
 ## Checking the groups at the end of the task acquisition phase
 
 We had a strict accuracy criteria for letting people into the experiment beyond the task acquistion phase, but for peace of mind, let's make sure the groups were comparable in accuracy in the second task acquisition block where they had to score \> 80% to pass.
 
-```{r warning = FALSE message = FALSE}
+```{r warning = FALSE, message = FALSE}
 # first, we need to load the evt level data, filter by the acquisition phase, and then extract the last 80 trials for each subject
 
 plot_acquisition_dat <- function(x){
